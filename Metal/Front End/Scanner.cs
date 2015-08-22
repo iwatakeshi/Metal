@@ -77,7 +77,7 @@ namespace Metal.FrontEnd.Lex {
 			case '\n':
 				source.Line++;
 				NextChar ();
-				return null;
+				return NextToken ();
 			
 			/* Operators */
 			
@@ -298,15 +298,18 @@ namespace Metal.FrontEnd.Lex {
 						if (Token.IsKeyword (buffer.ToString ()))
 							break;
 					}
-					if (Token.IsKeyword (buffer.ToString ())) {
-						return new Token (TokenType.Keyword, buffer.ToString (), source);
+					if (buffer.Capacity > 0) {
+						if (Token.IsKeyword (buffer.ToString ())) {
+							return new Token (TokenType.Keyword, buffer.ToString (), source);
+						} else
+							return new Token (TokenType.Id, buffer.ToString (), source);
 					} else
-						return new Token (TokenType.Id, buffer.ToString (), source);
+						return null;
 				}
 
 				// TODO: Report error
 				//return new Token(Token.Invalid, source);
-				return null;
+				return NextToken ();
 			}
 		}
 

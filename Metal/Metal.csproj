@@ -53,12 +53,12 @@
   <ItemGroup>
     <Folder Include="IO\" />
     <Folder Include="Front End\" />
-    <Folder Include="Test\" />
+    <Folder Include="Source Files\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="Front End\FrontEnd.md" />
-    <None Include="Test\index.ms">
+    <None Include="Source Files\index.ms">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

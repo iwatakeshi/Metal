@@ -265,8 +265,8 @@ namespace Metal.FrontEnd.Lex {
 			this.source = source;
 		}
 
-		public Token(string reserved, Source source){
-			this.token = keywords [reserved];
+		public Token(string keyword, Source source){
+			this.token = keywords [keyword];
 			this.source = source;
 		}
 
@@ -299,7 +299,6 @@ namespace Metal.FrontEnd.Lex {
 				string.Format ("Name={0}, {1}", Name, source.ToString ()) :
 				string.Format ("Name={0}, Value={1}, {2}",Name, token.Item2, source.ToString ());
 		}
-
 		/// <summary>
 		/// Gets the name of the token.
 		/// </summary>
