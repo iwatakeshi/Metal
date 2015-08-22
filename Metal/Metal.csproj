@@ -3,10 +3,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
-    <ProjectGuid>{2357F43E-1B6F-48DC-A2E4-6DE354E9815D}</ProjectGuid>
+    <ProjectGuid>{F75715F4-61AB-4936-8822-79C9A984C663}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>Flask</RootNamespace>
-    <AssemblyName>Flask</AssemblyName>
+    <RootNamespace>Metal</RootNamespace>
+    <AssemblyName>Metal</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
@@ -17,8 +17,9 @@
     <DefineConstants>DEBUG;</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <Externalconsole>true</Externalconsole>
     <PlatformTarget>x86</PlatformTarget>
+    <ConsolePause>false</ConsolePause>
+    <Commandlineparameters>-r index.ms</Commandlineparameters>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <DebugType>full</DebugType>
@@ -31,17 +32,40 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="CommandLine">
+      <HintPath>..\packages\CommandLineParser.1.9.71\lib\net45\CommandLine.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Front End\Scanner.cs" />
-    <Compile Include="IO\Comment.cs" />
+    <Compile Include="Front End\Scanner.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Include="Front End\Parser.cs" />
     <Compile Include="Front End\Token.cs" />
+    <Compile Include="IO\Source.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Include="IO\File.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
-    <Folder Include="Front End\" />
     <Folder Include="IO\" />
+    <Folder Include="Front End\" />
+    <Folder Include="Test\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+    <None Include="Front End\FrontEnd.md" />
+    <None Include="Test\index.ms">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Flask\Flask.csproj">
+      <Project>{2357F43E-1B6F-48DC-A2E4-6DE354E9815D}</Project>
+      <Name>Flask</Name>
+    </ProjectReference>
   </ItemGroup>
 </Project>

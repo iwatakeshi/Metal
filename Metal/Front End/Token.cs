@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Metal.IO;
 
-namespace Metal.FrontEnd.Scan {
+namespace Metal.FrontEnd.Lex {
 	public enum TokenType {
 		/*
 			Keywords
@@ -116,6 +116,8 @@ namespace Metal.FrontEnd.Scan {
 		RemainderAssignment,
 		// ==
 		Equal,
+		// !=
+		NotEqual,
 		// ===
 		StrictEqual,
 		// >
@@ -144,21 +146,14 @@ namespace Metal.FrontEnd.Scan {
 		Number,
 		// ^(?![0-9])[0-9A-Za-z]+
 		Id,
-		// Anything not defined by grammar.
+		// Anything else not defined by grammar.
+		Keyword,
 		Invalid
 	}
 
 	public class Token {
 		
-		static Dictionary<string, Tuple<TokenType, string>> reserved = new Dictionary<string, Tuple<TokenType, string>>(){
-			{As.Item2, As}, {Bool.Item2, Bool}, {Char.Item2, Char}, {Class.Item2, Class}, {Else.Item2, Else}, 
-			{Extends.Item2, Extends}, {Export.Item2, Export}, {False.Item2, False}, {Fn.Item2, Fn}, {Hidden.Item2, Hidden}, 
-			{Is.Item2, Is}, {Import.Item2, Import}, {Let.Item2, Let}, {LogicalNot.Item2, LogicalNot}, {Module.Item2, Module}, 
-			{New.Item2, New}, {Null.Item2, Null}, {Public.Item2, Public}, {Return.Item2, Return}, {Shared.Item2, Shared}, 
-			{Static.Item2, Static}, {String.Item2, String}, {Super.Item2, Super}, {This.Item2, This}, {True.Item2, True}, {Var.Item2, Var}, 
-			{While.Item2, While}
-		};
-		public static Dictionary<string, Tuple<TokenType, string>> Reserved { get { return reserved; } }
+		static Dictionary<string, Tuple<TokenType, string>> keywords;
 
 		/* Keywords */
 		public static readonly Tuple<TokenType, string> As = Tuple.Create (TokenType.As, "as");
@@ -216,6 +211,7 @@ namespace Metal.FrontEnd.Scan {
 		public static readonly Tuple<TokenType, string> ProductAssignment = Tuple.Create (TokenType.ProductAssignment, "*=");
 		public static readonly Tuple<TokenType, string> RemainderAssignment = Tuple.Create (TokenType.RemainderAssignment, "/=");
 		public static readonly Tuple<TokenType, string> Equal = Tuple.Create(TokenType.Equal, "==");
+		public static readonly Tuple<TokenType, string> NotEqual = Tuple.Create (TokenType.NotEqual, "!=");
 		public static readonly Tuple<TokenType, string> StrictEqual = Tuple.Create(TokenType.StrictEqual, "===");
 		public static readonly Tuple<TokenType, string> GreaterThan = Tuple.Create(TokenType.GreaterThan, ">");
 		public static readonly Tuple<TokenType, string> GreaterThanEqualTo = Tuple.Create(TokenType.GreaterThanEqualTo, ">=");
@@ -232,29 +228,36 @@ namespace Metal.FrontEnd.Scan {
 		public static Tuple<TokenType, string> Number = Tuple.Create(TokenType.Number, "");
 		public static Tuple<TokenType, string> Id = Tuple.Create(TokenType.Id, "");
 		public static Tuple<TokenType, string> Invalid = Tuple.Create(TokenType.Invalid, "");
-
+		public static Tuple<TokenType, string> Keyword = Tuple.Create (TokenType.Keyword, "");
 		/// <summary>
 		/// The token names.
 		/// </summary>
 		private static readonly Dictionary<Tuple<TokenType, string>, string> tokenNames = new Dictionary<Tuple<TokenType, string>, string>(){
-			{And, "And"}, {As, "As"}, {Assign, "Assign"}, {Bool, "Bool"}, {Char, "Char"}, {CharacterLiteral, "Character Literal"}, 
-			{Class, "Class"}, {Colon, "Colon"}, {Comma, "Comma"}, {Decrement, "Decrement"}, {DifferenceAssignment, "Difference Assignment"}, 
-			{Divide, "Divide"}, {Dot, "Dot"}, {Else, "Else"}, {Equal, "Equal"}, {Export, "Export"}, {Extends, "Extends"}, {False, "False"}, 
-			{Fn, "Function"}, {GreaterThan, "Greater Than"}, {GreaterThanEqualTo, "Greater Than or Equal To"}, {Hidden, "Hidden"}, {Id, "Identifier"}, 
-			{If, "If"}, {Import, "Import"}, {Increment, "Increment"}, {Invalid, "Invalid"}, {Is, "Is"}, {LeftBraces, "Left Braces"}, 
-			{LeftBracket, "Right Braces"}, {LeftParenthesis, "Left Parenthesis"}, {Let, "Let"}, {LessThan, "Less Than"}, {LessThanEqualTo, "Less Than or Equal To"}, 
-			{LogicalNot, "Logical Not"}, {Minus, "Minus"}, {Module, "Module"}, {Modulus, "Modulus"}, {New, "New"}, {Null, "Null"}, {Number, "Number"}, {Or, "Or"},{Plus, "Plus"}, 
-			{ProductAssignment, "Product Assignment"}, {Public, "Public"}, {Return, "Return"}, {RightBraces, "Right Braces"}, {RightBracket, "Right Bracket"}, 
-			{RightParenthesis, "Right Parenthesis"}, {SemiColon, "SemiColon"}, {Shared, "Shared"}, {Static, "Static"}, {StrictEqual, "Strict Equal"}, {String, "String"}, 
-			{StringLiteral, "String Literal"}, {SumAssignment, "Sum Assignment"}, {Super, "Super"}, {This, "This"}, {Times, "Times"}, 
-			{True, "True"}, {While, "While"}
+			{And, "And"}, {Assign, "Assign"}, {Char, "Char"}, {CharacterLiteral, "Character Literal"}, {Colon, "Colon"}, {Comma, "Comma"}, 
+			{Decrement, "Decrement"}, {DifferenceAssignment, "Difference Assignment"}, {Divide, "Divide"}, {Dot, "Dot"}, {Else, "Else"}, 
+			{Equal, "Equal"}, {GreaterThan, "Greater Than"}, {GreaterThanEqualTo, "Greater Than or Equal To"}, {Id, "Identifier"}, 
+			{Increment, "Increment"}, {LeftBraces, "Left Braces"}, {LeftBracket, "Right Braces"}, {LeftParenthesis, "Left Parenthesis"}, 
+			{LessThan, "Less Than"}, {LessThanEqualTo, "Less Than or Equal To"}, {LogicalNot, "Logical Not"}, {Minus, "Minus"},
+			{Modulus, "Modulus"}, {NotEqual, "Not Equal"}, {Or, "Or"}, {Plus, "Plus"}, {ProductAssignment, "Product Assignment"},
+			{RightBraces, "Right Braces"}, {RightBracket, "Right Bracket"}, {RightParenthesis, "Right Parenthesis"}, {SemiColon, "Semi-Colon"}, 
+			{StrictEqual, "Strict Equal"},	{StringLiteral, "String Literal"}, {SumAssignment, "Sum Assignment"}, {Times, "Times"}
 		};
 
 		Source source;
 		Tuple<TokenType, string> token;
 
+		static Token () {
+			keywords = new Dictionary<string, Tuple<TokenType, string>>{
+				{As.Item2, As}, {Bool.Item2, Bool}, {Char.Item2, Char}, {Class.Item2, Class}, {Else.Item2, Else}, 
+				{Extends.Item2, Extends}, {Export.Item2, Export}, {False.Item2, False}, {Fn.Item2, Fn}, {Hidden.Item2, Hidden}, 
+				{Is.Item2, Is}, {Import.Item2, Import}, {Let.Item2, Let}, {Module.Item2, Module}, {New.Item2, New}, 
+				{Null.Item2, Null}, {Public.Item2, Public}, {Return.Item2, Return}, {Shared.Item2, Shared}, 
+				{Static.Item2, Static}, {String.Item2, String}, {Super.Item2, Super}, {This.Item2, This}, {True.Item2, True}, 
+				{Var.Item2, Var}, {While.Item2, While}
+			};
+		} 
+
 		public Token () {
-			source = new Source ();
 		}
 
 		public Token(Tuple<TokenType, string> token, Source source){
@@ -263,7 +266,7 @@ namespace Metal.FrontEnd.Scan {
 		}
 
 		public Token(string reserved, Source source){
-			this.token = Reserved [reserved];
+			this.token = keywords [reserved];
 			this.source = source;
 		}
 
@@ -292,7 +295,9 @@ namespace Metal.FrontEnd.Scan {
 		public TokenType Type { get { return token.Item1; } }
 
 		public override string ToString () {
-			return string.Format ("Name={0}, {1}", Name, source.ToString ());
+			return tokenNames.ContainsKey(token) ? 
+				string.Format ("Name={0}, {1}", Name, source.ToString ()) :
+				string.Format ("Name={0}, Value={1}, {2}",Name, token.Item2, source.ToString ());
 		}
 
 		/// <summary>
@@ -313,11 +318,16 @@ namespace Metal.FrontEnd.Scan {
 					return "Identifier";
 				case TokenType.Invalid:
 					return "Invalid";
+				case TokenType.Keyword:
+					return "Keyword";
 				default:
 					// TODO: Report error
 					return "";
 				}
 			})();
+		}
+		public static bool IsKeyword(string key){
+			return keywords.ContainsKey (key);
 		}
 	}
 }

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Metal {
+namespace Metal.FrontEnd.Parse {
 	public class Parser {
 		public Parser () {
 		}

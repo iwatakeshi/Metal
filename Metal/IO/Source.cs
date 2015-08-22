@@ -2,63 +2,61 @@
 
 namespace Metal.IO {
 	public class Source {
-		private string fileName;
-		private int line;
-
-		private int position;
-		private int? extent;
-
-		public Source(string fileName, int line, int position) {
-			this.fileName = fileName;
-			this.line = line;
-			this.position = position;
+		string seperator = System.IO.Path.DirectorySeparatorChar.ToString ();
+		string directory = System.IO.Directory.GetCurrentDirectory ();
+		public Source(){
+			
+		}
+		public Source (string fileName) {
+			FileName = fileName;
+			Line = 1;
+			Position = 0;
+			Cursor = 0;
+			File = Metal.IO.File.ReadAllText (directory + fileName);
 		}
 
-		public Source(string fileName, int line, int position, int extent) {
-			this.fileName = fileName;
-			this.line = line;
-			this.position = position;
-			this.extent = extent;
+		public Source(string path, string fileName){
+			Path = path;
+			FileName = fileName;
+			Line = 1;
+			Position = 0;
+			Cursor = 0;
+			File = Metal.IO.File.ReadAllText (path + seperator + fileName);
 		}
 
-		public override string ToString() {
-			return fileName + ", line " + line + ", char " + position;
+		public Source (string fileName, int line, int position, int cursor) {
+			FileName = fileName;
+			Line = line;
+			Position = position;
+			Cursor = cursor;
+			File = Metal.IO.File.ReadAllText (directory + seperator + fileName);
 		}
 
-		public string FileName {
-			get
-			{
-				return fileName;
-			}
+		public Source(string path, string fileName, int line, int position, int cursor){
+			Path = path;
+			FileName = fileName;
+			Line = line;
+			Position = position;
+			Cursor = cursor;
+			File = Metal.IO.File.ReadAllText (path + fileName);
+		}
+		public override string ToString () {
+			return string.Format ("FileName='{0}', Path='{1}', Line={2}, Position={3}", FileName, Path, Line, Position);
 		}
 
-		public int Line {
-			get
-			{
-				return line;
-			}
-		}
+		public string FileName { get; set; }
 
-		public int Position {
-			get
-			{
-				return position;
-			}
-		}
+		public string File { get; set; }
 
-		public bool HasExtent {
-			get
-			{
-				return extent.HasValue;
-			}
-		}
+		public string Path { get; set; }
 
-		public int Extent {
-			get
-			{
-				return extent.Value;
-			}
-		}
+		public int Line { get; set; }
+
+		public int Position { get; set; }
+
+		public int EOF { get { return File.Length; } }
+
+		public int Cursor { get; set; }
 	}
 }
 
