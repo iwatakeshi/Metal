@@ -148,7 +148,8 @@ namespace Metal.FrontEnd.Lex {
 		Id,
 		// Anything else not defined by grammar.
 		Keyword,
-		Invalid
+		Invalid,
+		EOF,
 	}
 
 	public class Token {
@@ -227,8 +228,11 @@ namespace Metal.FrontEnd.Lex {
 		public static Tuple<TokenType, string> StringLiteral = Tuple.Create (TokenType.StringLiteral, "");
 		public static Tuple<TokenType, string> Number = Tuple.Create(TokenType.Number, "");
 		public static Tuple<TokenType, string> Id = Tuple.Create(TokenType.Id, "");
+
+		/* Other */
 		public static Tuple<TokenType, string> Invalid = Tuple.Create(TokenType.Invalid, "");
 		public static Tuple<TokenType, string> Keyword = Tuple.Create (TokenType.Keyword, "");
+		public static Tuple<TokenType, string> EOF = Tuple.Create (TokenType.EOF,"");
 		/// <summary>
 		/// The token names.
 		/// </summary>
@@ -319,6 +323,8 @@ namespace Metal.FrontEnd.Lex {
 					return "Invalid";
 				case TokenType.Keyword:
 					return "Keyword";
+				case TokenType.EOF:
+					return "End of File";
 				default:
 					// TODO: Report error
 					return "";

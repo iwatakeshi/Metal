@@ -36,6 +36,8 @@ namespace Metal.FrontEnd.Lex {
 		/// </summary>
 		/// <returns>The token.</returns>
 		public Token NextToken () {
+			if (IsEOF)
+				return new Token (Token.EOF, source);
 			// Clear the string buffer
 			buffer.Clear ();
 			// Skip whitespace
@@ -213,6 +215,7 @@ namespace Metal.FrontEnd.Lex {
 				// %
 				return new Token (Token.Modulus, source);
 			case '\'':
+				buffer.Append ('\'');
 				NextChar ();
 				if (CurrentChar () == '\\') {
 					NextChar ();
@@ -292,19 +295,16 @@ namespace Metal.FrontEnd.Lex {
 				}
 				// If the character is a identifier
 				if (Char.IsLetter (CurrentChar ()) || CurrentChar () == '$') {
-					while (Char.IsLetterOrDigit (CurrentChar ()) || CurrentChar () == '$') {
+					while ((Char.IsLetterOrDigit (CurrentChar ()) || CurrentChar () == '$')) {
 						buffer.Append (CurrentChar ());
 						NextChar ();
-						if (Token.IsKeyword (buffer.ToString ()))
+						if (CurrentChar () == NewLine)
 							break;
 					}
-					if (buffer.Capacity > 0) {
-						if (Token.IsKeyword (buffer.ToString ())) {
-							return new Token (TokenType.Keyword, buffer.ToString (), source);
-						} else
-							return new Token (TokenType.Id, buffer.ToString (), source);
+					if (Token.IsKeyword (buffer.ToString ())) {
+						return new Token (TokenType.Keyword, buffer.ToString (), source);
 					} else
-						return null;
+						return new Token (TokenType.Id, buffer.ToString (), source);
 				}
 
 				// TODO: Report error
@@ -341,7 +341,7 @@ namespace Metal.FrontEnd.Lex {
 		/// Gets a value indicating whether this instance is EOF.
 		/// </summary>
 		/// <value><c>true</c> if this instance is EOF; otherwise, <c>false</c>.</value>
-		public bool IsEOF { get { return source.Position == source.EOF; } }
+		public bool IsEOF { get { return CurrentChar () == source.EOF; } }
 
 		public Comment Comments { get { return comments; } }
 
