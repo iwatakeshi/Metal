@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Metal.IO;
+using Newtonsoft.Json.Linq;
 
 namespace Metal.FrontEnd.Lex {
 	public enum TokenType {
@@ -140,13 +141,11 @@ namespace Metal.FrontEnd.Lex {
 			Data type
 		*/
 		CharacterLiteral,
-		// ^["|']([\s\S]*)["\']$
 		StringLiteral,
-		// [-+]?([0-9]*\.[0-9]+|[0-9]+)
 		Number,
-		// ^(?![0-9])[0-9A-Za-z]+
 		Id,
-		// Anything else not defined by grammar.
+
+		/* Anything else not defined by grammar. */
 		Keyword,
 		Invalid,
 		EOF,
@@ -298,11 +297,34 @@ namespace Metal.FrontEnd.Lex {
 		/// <value>The type.</value>
 		public TokenType Type { get { return token.Item1; } }
 
+		/// <summary>
+		/// Returns a <see cref="System.String"/> that represents the current <see cref="Metal.FrontEnd.Lex.Token"/>.
+		/// </summary>
+		/// <returns>A <see cref="System.String"/> that represents the current <see cref="Metal.FrontEnd.Lex.Token"/>.</returns>
 		public override string ToString () {
 			return tokenNames.ContainsKey(token) ? 
-				string.Format ("Name={0}, {1}", Name, source.ToString ()) :
-				string.Format ("Name={0}, Value={1}, {2}",Name, token.Item2, source.ToString ());
+				string.Format ("Name: {0}, {1}", Name, source.ToString ()) :
+				string.Format ("Name: {0}, Value: {1}, {2}",Name, token.Item2, source.ToString ());
 		}
+		/// <summary>
+		/// Returns a JSON object that represents the current <see cref="Metal.FrontEnd.Lex.Token"/>.
+		/// </summary>
+		/// <returns>The JSON object.</returns>
+		public object ToJson () {
+			var str = tokenNames.ContainsKey (token) ? 
+				string.Format ("{{ \"token\": {{ \"type\": \"{0}\" }} }}", Name) :
+				string.Format ("{{ \"token\": {{ \"type\": \"{0}\", \"value\": {1} }} }}", Name, 
+					Name == "String Literal" || Name == "Number" ? token.Item2 : "\"" + token.Item2 + "\"");
+			var mergeSettings = new JsonMergeSettings
+			{
+				MergeArrayHandling = MergeArrayHandling.Union
+			};
+
+			var json = JObject.Parse (str);
+			json.Merge(source.ToJson (), mergeSettings);
+			return json;
+		}
+
 		/// <summary>
 		/// Gets the name of the token.
 		/// </summary>
@@ -326,11 +348,15 @@ namespace Metal.FrontEnd.Lex {
 				case TokenType.EOF:
 					return "End of File";
 				default:
-					// TODO: Report error
 					return "";
 				}
 			})();
 		}
+		/// <summary>
+		/// Determines if the key is the specified key of keywords.
+		/// </summary>
+		/// <returns><c>true</c> if the key is the specified key of keywords; otherwise, <c>false</c>.</returns>
+		/// <param name="key">Key.</param>
 		public static bool IsKeyword(string key){
 			return keywords.ContainsKey (key);
 		}

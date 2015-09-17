@@ -10,6 +10,7 @@ namespace MetalTests {
 		string seperator = System.IO.Path.DirectorySeparatorChar.ToString ();
 		string directory = Directory.GetParent (Directory.GetCurrentDirectory ()).Parent.FullName;
 		List<TokenType> tokenTypes = new List<TokenType> () {
+			// Test Number, Id, Keyword, Character Literal, and String Literal
 			TokenType.Number, TokenType.Id, TokenType.Keyword, TokenType.CharacterLiteral, 
 			TokenType.StringLiteral,
 			// Test all keywords

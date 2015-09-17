@@ -6,9 +6,11 @@ using Metal.FrontEnd.Lex;
 namespace Metal
 {
 	class About {
+		public static String Author { get {return "Takeshi Iwana"; } }
 		public static String Version { get { return "0.0.0"; } }
 		public static String Name { get { return "Metal"; } }
-		public static String License { get { return string.Format ("MIT ({0})", DateTime.Now.Year.ToString ()); } }
+		public static String License { get { return String.Format ("The MIT License (MIT)\n{0}", Copyright); } }
+		public static String Copyright { get { return String.Format ("Copyright (c) {0} {1}", DateTime.Now.Year.ToString (), Author); } }
 	}
 
 	/// <summary>
@@ -37,18 +39,18 @@ namespace Metal
 	{
 		public static void Main (string[] args)
 		{
-			Console.WriteLine ("Project: {0} License: {1} Version: {2}", About.Name, About.License, About.Version);
+			Console.WriteLine ("{0}\n{1}\nVersion: {2}", About.Name, About.License, About.Version);
 			var options = new Options();
 			if (CommandLine.Parser.Default.ParseArguments(args, options)) {
 				// Values are available here
 				if (options.Verbose) {
 					string path = Directory.GetParent (Directory.GetCurrentDirectory ()).Parent.FullName;
 					string seperator = Path.DirectorySeparatorChar.ToString ();
-					string testPath = path + seperator + "Test" + seperator;
+					string testPath = path + seperator + "Source Files" + seperator;
 					Scanner scanner = new Scanner (testPath, options.InputFile);
 					while(!scanner.IsEOF){
 						var token = scanner.NextToken ();
-						if(token != null) Console.WriteLine(token);
+						if(token != null) Console.WriteLine(token.ToJson ().ToString ());
 					}
 				}
 

@@ -4,7 +4,7 @@ using Flask.IO;
 using System.Text;
 using System.Linq;
 using System.Collections.Generic;
-
+using log4net;
 namespace Metal.FrontEnd.Lex {
 	/// <summary>
 	/// Transforms a stream of characters into a stream of words.
@@ -19,16 +19,22 @@ namespace Metal.FrontEnd.Lex {
 		public Scanner () {
 			buffer = new StringBuilder ();
 			comments = new Comment ();
+			log4net.Config.BasicConfigurator.Configure();
+			Log = log4net.LogManager.GetLogger(typeof(Scanner));
 		}
 
 		public Scanner (string fileName) {
 			buffer = new StringBuilder ();
 			source = new Source (fileName);
+			log4net.Config.BasicConfigurator.Configure();
+			Log = log4net.LogManager.GetLogger(typeof(Scanner));
 		}
 
 		public Scanner (string path, string fileName) {
 			buffer = new StringBuilder ();
 			source = new Source (path, fileName);
+			log4net.Config.BasicConfigurator.Configure();
+			Log = log4net.LogManager.GetLogger(typeof(Scanner));
 		}
 
 		/// <summary>
@@ -36,8 +42,6 @@ namespace Metal.FrontEnd.Lex {
 		/// </summary>
 		/// <returns>The token.</returns>
 		public Token NextToken () {
-			if (IsEOF)
-				return new Token (Token.EOF, source);
 			// Clear the string buffer
 			buffer.Clear ();
 			// Skip whitespace
@@ -229,8 +233,8 @@ namespace Metal.FrontEnd.Lex {
 					NextChar ();
 					return new Token (TokenType.CharacterLiteral, buffer.ToString (), source);
 				} else {
-					// TODO: Report error
-					while (CurrentChar () != '\'' && CurrentChar () != ';' && CurrentChar () != '\n') {
+					Log.Warn (String.Format ("Metal [Warn]: Missing \"'\" on line {0}.", Source.Line));
+					while (CurrentChar () != '\'' && CurrentChar () != '\n') {
 						NextChar ();
 					}
 					return new Token (TokenType.CharacterLiteral, buffer.ToString (), source);
@@ -248,13 +252,15 @@ namespace Metal.FrontEnd.Lex {
 					}
 				}
 				if (CurrentChar () == '\n') {
-					// TODO: Report error
+					Log.Warn (String.Format ("Metal [Warn]: Missing '\"' on line {0}.", Source.Line));
 				} else {
 					// Scan the closing "
 					NextChar ();
 					buffer.Append ("\"");
 				}
 				return new Token (TokenType.StringLiteral, buffer.ToString (), source);
+			case '\0':
+				return new Token (Token.EOF, source);
 			default:
 				// If the character is a number
 				if (Char.IsDigit (CurrentChar ())) {
@@ -307,8 +313,7 @@ namespace Metal.FrontEnd.Lex {
 						return new Token (TokenType.Id, buffer.ToString (), source);
 				}
 
-				// TODO: Report error
-				//return new Token(Token.Invalid, source);
+				Log.Warn (String.Format ("Metal [Warn]: Skipping token."));
 				return NextToken ();
 			}
 		}
@@ -354,7 +359,7 @@ namespace Metal.FrontEnd.Lex {
 		char NewLine { get { return Environment.NewLine.ToCharArray () [0]; } }
 
 		/// <summary>
-		/// Skips all white spaces
+		/// Skips all white spaces and comments
 		/// </summary>
 		void Ignore(){
 			for (;; NextChar ()) {
@@ -390,11 +395,12 @@ namespace Metal.FrontEnd.Lex {
 				if(CurrentChar () == '*' && PeekChar () == '/'){
 					source.Position += 2;
 				}else {
-					// TODO Report error
+					Log.Error (String.Format ("Metal [Error]: Missing ends to comment on line {0}.", Source.Line));
 				}
 			}
 		}
 
+		ILog Log { get; set;}
 
 		/// <summary>
 		/// Escape the character.
@@ -427,7 +433,7 @@ namespace Metal.FrontEnd.Lex {
 				return "\\\\";
 			default:
 				NextChar ();
-				// TODO: Report error
+				Log.Warn (String.Format ("Metal [Error]: Failed to escape on line {0}.", Source.Line));
 				return "";
 			}
 		}

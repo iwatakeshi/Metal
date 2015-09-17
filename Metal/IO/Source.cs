@@ -1,4 +1,5 @@
 ﻿using System;
+using Newtonsoft.Json.Linq;
 
 namespace Metal.IO {
 
@@ -44,8 +45,20 @@ namespace Metal.IO {
 			File = Metal.IO.File.ReadAllText (path + fileName) + EOF;
 			Length = File.Length;
 		}
+		/// <summary>
+		/// Returns a <see cref="System.String"/> that represents the current <see cref="Metal.IO.Source"/>.
+		/// </summary>
+		/// <returns>A <see cref="System.String"/> that represents the current <see cref="Metal.IO.Source"/>.</returns>
 		public override string ToString () {
-			return string.Format ("FileName='{0}', Path='{1}', Line={2}, Position={3}", FileName, Path, Line, Position);
+			return string.Format ("FileName: '{0}', Path: '{1}', Line: {2}, Position: {3}", FileName, Path, Line, Position);
+		}
+
+		/// <summary>
+		/// Returns a JSON object that represents the current <see cref="Metal.IO.Source"/>.
+		/// </summary>
+		/// <returns>The JSON object.</returns>
+		public object ToJson () {
+			return JObject.Parse (string.Format ("{{ \"source\": {{ \"name\": \"{0}\", \"path\": \"{1}\", \"line\": {2}, \"position\": {3} }} }}", FileName, Path, Line, Position));
 		}
 
 		public string FileName { get; private set; }
