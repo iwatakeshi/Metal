@@ -2,7 +2,7 @@
 using System.IO;
 using CommandLine;
 using CommandLine.Text;
-using Metal.FrontEnd.Lex;
+using Metal.FrontEnd.Scan;
 
 namespace Metal {
   class About {

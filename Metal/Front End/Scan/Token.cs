@@ -2,7 +2,7 @@
 using Metal.IO;
 using Newtonsoft.Json.Linq;
 
-namespace Metal.FrontEnd.Lex {
+namespace Metal.FrontEnd.Scan {
   public enum TokenType {
         
     /* Literals */
@@ -21,61 +21,8 @@ namespace Metal.FrontEnd.Lex {
     /* Keyword */
     Keyword,
     
-    /* Operators */
-    // '='
-    AssignmentOperator,
-    // '+'
-    AdditionOperator,
-    UnaryPlusOperator,
-    // '-'
-    SubtractionOperator,
-    UnaryMinusOperator,
-    // '*'
-    MuliplicationOperator,
-    // '/'
-    DivisionOperator,
-    // '%'
-    RemainderOperator,
-    // '++'
-    IncrementOperator,
-    // '--'
-    DecrementOperator,
-    // '+='
-    AdditionAssignmentOperator,
-    // '-='
-    SubtractionAssignmentOperator,
-    // '*='
-    MultiplicationAssignmentOperator,
-    // '/='
-    DivisionAssignmentOperator,
-    // '=='
-    EqualToComparisonOperator,
-    // '!='
-    NotEqualToComparisonOperator,
-    // '>'
-    GreaterThanComparisonOperator,
-    // '<'
-    LessThanComparisonOperator,
-    // '>='
-    GreaterThanEqualToComparisonOperator,
-    // '<='
-    LessThanEqualToComparisonOperator,
-    // '==='
-    StrictEqualToIdentityOperator,
-    // '!=='
-    StrictNotEqualToIdentityOperator,
-    // '?'
-    IfTernaryOperator,
-    // '&&'
-    AndLogicalOperator,
-    // 'Or'
-    OrLogicalOperator,
-    // '!'
-    NotLogicalOperator,
-    // '->':
-    LambdaOperator,
-    // '.':
-    DotOperator,
+    /* Operator */
+    Operator,
     
     /* Punctuations */
     // '(':
@@ -123,123 +70,93 @@ namespace Metal.FrontEnd.Lex {
       this.source = source;
     }
 
+    /// <summary>
+    /// Gets the source.
+    /// </summary>
+    /// <value>The source.</value>
     Source Source { get { return source; } }
 
     /// <summary>
-    /// Gets the name of the current token.
+    /// Gets the token name.
     /// </summary>
     /// <value>The name.</value>
     public string Name {
       get { 
-        return GetName(type);
+        return GetName (type);
       }
     }
-    public static string GetName (TokenType key){
-       switch (key) {
-        /* Literals */
-        case TokenType.StringLiteral:
-          return "String Literal";
-        case TokenType.IntegerLiteral:
-          return "Integer Literal";
-        case TokenType.FloatingPointLiteral:
-          return "Floating Point Literal";
-        case TokenType.BooleanLiteral:
-          return "Boolean Literal";
-        /* Operators */
-        case TokenType.AssignmentOperator:
-          return "Assignment Operator";
-        case TokenType.AdditionOperator:
-          return "Addition Operator";
-        case TokenType.SubtractionOperator:
-          return "Subtraction Operator";
-        case TokenType.MuliplicationOperator:
-          return "Multiplication Operator";
-        case TokenType.DivisionOperator:
-          return "Division Operator";
-        case TokenType.AdditionAssignmentOperator:
-          return "Addition Assignment Operator";
-        case TokenType.SubtractionAssignmentOperator:
-          return "Subtraction Assignment Operator";
-        case TokenType.MultiplicationAssignmentOperator:
-          return "Multiplication Assignment Operator";
-        case TokenType.DivisionAssignmentOperator:
-          return "Division Assignment Operator";
-        case TokenType.EqualToComparisonOperator:
-          return "Equal-To Comparison Operator";
-        case TokenType.NotEqualToComparisonOperator:
-          return "Not Equal-To Comparison Operator";
-        case TokenType.GreaterThanComparisonOperator:
-          return "Greater-Than Comparison Operator";
-        case TokenType.LessThanComparisonOperator:
-          return "Less-Than Comparison Operator";
-        case TokenType.GreaterThanEqualToComparisonOperator:
-          return "Greater-Than Or Equal-To Comparision Operator";
-        case TokenType.LessThanEqualToComparisonOperator:
-          return "Less-Than Or Equal-To Comparison Operator";
-        case TokenType.StrictEqualToIdentityOperator:
-          return "Strict Equal-To Identity Operator";
-        case TokenType.StrictNotEqualToIdentityOperator:
-          return "Strict Not Equal-To Identity Operator";
-        case TokenType.IfTernaryOperator:
-          return "If Ternary Operator";
-        case TokenType.AndLogicalOperator:
-          return "AND Logical Operator";
-        case TokenType.OrLogicalOperator:
-          return "OR Logical Operator";
-        case TokenType.NotLogicalOperator:
-          return "Not Logical Operator";
-        case TokenType.LambdaOperator:
-          return "Lambda Operator";
-        case TokenType.DotOperator:
-          return "Dot Operator";
-        /* Punctuations */
-        case TokenType.LeftParenthesisPunctuation:
-          return "Left Parenthesis Punctuation";
-        case TokenType.RightParenthesisPunctuation:
-          return "Right Parenthesis Punctuation";
-        case TokenType.LeftBracePunctuation:
-          return "Left Brace Punctuation";
-        case TokenType.RightBracePunctuation:
-          return "Right Brace Punctuation";
-        case TokenType.LeftBracketPunctuation:
-          return "Left Bracket Punctuation";
-        case TokenType.RightBracketPunctuation:
-          return "Right Bracket Punctuation";
-        case TokenType.CommaPunctuation:
-          return "Comma Punctuation";
-        case TokenType.ColonPunctuation:
-          return "Colon Punctuation";
-        case TokenType.SemiColonPunctuation:
-          return "Semi-Colon Punctuation";
-        case TokenType.AtPunctuation:
-          return "At Punctuation";
-        case TokenType.Keyword:
-          return "Keyword";
-        case TokenType.Invalid:
-          return "Invalid Token";
-        case TokenType.EOF:
-          return "End of File";
-        default:
-          return "";
-        }
+
+    /// <summary>
+    /// Gets the token name.
+    /// </summary>
+    /// <returns>The name.</returns>
+    /// <param name="key">Key.</param>
+    public static string GetName (TokenType key) {
+      switch (key) {
+      /* Literals */
+      case TokenType.StringLiteral:
+        return "String Literal";
+      case TokenType.IntegerLiteral:
+        return "Integer Literal";
+      case TokenType.FloatingPointLiteral:
+        return "Floating Point Literal";
+      case TokenType.BooleanLiteral:
+        return "Boolean Literal";
+      /* Operator */
+      case TokenType.Operator:
+        return "Operator";
+      /* Punctuations */
+      case TokenType.LeftParenthesisPunctuation:
+        return "Left Parenthesis Punctuation";
+      case TokenType.RightParenthesisPunctuation:
+        return "Right Parenthesis Punctuation";
+      case TokenType.LeftBracePunctuation:
+        return "Left Brace Punctuation";
+      case TokenType.RightBracePunctuation:
+        return "Right Brace Punctuation";
+      case TokenType.LeftBracketPunctuation:
+        return "Left Bracket Punctuation";
+      case TokenType.RightBracketPunctuation:
+        return "Right Bracket Punctuation";
+      case TokenType.CommaPunctuation:
+        return "Comma Punctuation";
+      case TokenType.ColonPunctuation:
+        return "Colon Punctuation";
+      case TokenType.SemiColonPunctuation:
+        return "Semi-Colon Punctuation";
+      case TokenType.AtPunctuation:
+        return "At Punctuation";
+      case TokenType.Identifier:
+        return "Identifier";
+      case TokenType.Keyword:
+        return "Keyword";
+      case TokenType.Invalid:
+        return "Invalid Token";
+      case TokenType.EOF:
+        return "End of File";
+      default:
+        return "";
+      }
     }
+
     /// <summary>
     /// Gets the type of the current token.
     /// </summary>
     /// <value>The type.</value>
     public TokenType Type { get { return type; } }
+
     /// <summary>
     /// Gets the value of the current token.
     /// </summary>
     /// <value>The value.</value>
     public string Value { get { return value; } }
-    
+
     /// <summary>
     /// Returns a <see cref="System.String"/> that represents the current <see cref="Metal.FrontEnd.Lex.Token"/>.
     /// </summary>
     /// <returns>A <see cref="System.String"/> that represents the current <see cref="Metal.FrontEnd.Lex.Token"/>.</returns>
     public override string ToString () {
-      return string.Format ("Type: {0}, Value: {1}, Is Reserved: {2}, {3}", Name, value, IsReserved(value), source.ToString ());
+      return string.Format ("Type: {0}, Value: {1}, Is Reserved: {2}, {3}", Name, value, IsReserved (value), source.ToString ());
     }
 
     /// <summary>
@@ -252,7 +169,17 @@ namespace Metal.FrontEnd.Lex {
       case TokenType.StringLiteral:
       case TokenType.Identifier:
       case TokenType.Keyword:
-
+      case TokenType.Operator:
+      case TokenType.AtPunctuation:
+      case TokenType.ColonPunctuation:
+      case TokenType.CommaPunctuation:
+      case TokenType.LeftBracePunctuation:
+      case TokenType.LeftBracketPunctuation:
+      case TokenType.LeftParenthesisPunctuation:
+      case TokenType.RightBracePunctuation:
+      case TokenType.RightBracketPunctuation:
+      case TokenType.RightParenthesisPunctuation:
+      case TokenType.SemiColonPunctuation:
         val = "\"" + value + "\"";
         break;
       case TokenType.IntegerLiteral:
@@ -264,7 +191,8 @@ namespace Metal.FrontEnd.Lex {
         val = "";
         break;
       }
-      var str = string.Format ("{{ \"token\": {{ \"type\": \"{0}\", \"value\": {1}, \"isReserved\": {2} }} }}", Name, val, IsReserved (val));
+      var str = string.Format ("{{ \"token\": {{ \"type\": \"{0}\", \"value\": {1}, \"isReserved\": {2} }} }}", 
+        Name, val, IsReserved (val).ToString ().ToLower ());
       var mergeSettings = new JsonMergeSettings {
         MergeArrayHandling = MergeArrayHandling.Union
       };
@@ -275,9 +203,17 @@ namespace Metal.FrontEnd.Lex {
     }
 
     /// <summary>
-    /// Determines if the key is the specified key of keywords.
+    /// Determines whether this instance is a keyword.
     /// </summary>
-    /// <returns><c>true</c> if the key is the specified key of keywords; otherwise, <c>false</c>.</returns>
+    /// <returns><c>true</c> if this instance is a keyword; otherwise, <c>false</c>.</returns>
+    public bool IsKeyword () {
+      return IsKeyword (value);
+    }
+
+    /// <summary>
+    /// Determines if the specified key is a keyword.
+    /// </summary>
+    /// <returns><c>true</c> if the specified key is a keyword; otherwise, <c>false</c>.</returns>
     /// <param name="key">Key.</param>
     public static bool IsKeyword (string key) {
       switch (key) {
@@ -285,7 +221,7 @@ namespace Metal.FrontEnd.Lex {
       case "class":
       case "enum":
       case "extends":
-      case "func":
+      case "fn":
       case "import":
       case "export":
       case "init":
@@ -293,7 +229,7 @@ namespace Metal.FrontEnd.Lex {
       case "var":
       case "private":
       case "public":
-                /* Keywords used in statements */
+      /* Keywords used in statements */
       case "break":
       case "case":
       case "continue":
@@ -307,8 +243,7 @@ namespace Metal.FrontEnd.Lex {
       case "switch":
       case "while":
       case "yield":
-                /* Keywords used in expressions and types */
-      case "as":
+      /* Keywords used in expressions and types */
       case "catch":
       case "false":
       case "null":
@@ -317,7 +252,7 @@ namespace Metal.FrontEnd.Lex {
       case "throw":
       case "true":
       case "try":
-                /* Keywords reserved in particular contexts */
+      /* Keywords reserved in particular contexts */
       case "get":
       case "set":
         return true;
@@ -326,6 +261,19 @@ namespace Metal.FrontEnd.Lex {
       }
     }
 
+    /// <summary>
+    /// Determines whether this instance is a punctuation.
+    /// </summary>
+    /// <returns><c>true</c> if this instance is a punctuation; otherwise, <c>false</c>.</returns>
+    public bool IsPunctuation () {
+      return IsPunctuation (value);
+    }
+
+    /// <summary>
+    /// Determines if the specified key is a punctuation .
+    /// </summary>
+    /// <returns><c>true</c> if the specified key is a punctuation; otherwise, <c>false</c>.</returns>
+    /// <param name="key">Key.</param>
     public static bool IsPunctuation (string key) {
       switch (key) {
       case "(":
@@ -335,6 +283,7 @@ namespace Metal.FrontEnd.Lex {
       case "[":
       case "]": 
       case ",":
+      case ":":
       case ";":
       case "=":
       case "@":
@@ -346,6 +295,19 @@ namespace Metal.FrontEnd.Lex {
       }
     }
 
+    /// <summary>
+    /// Determines whether this instance is an operator.
+    /// </summary>
+    /// <returns><c>true</c> if this instance is an operator; otherwise, <c>false</c>.</returns>
+    public bool IsOperator () {
+      return IsOperator (value);
+    }
+
+    /// <summary>
+    /// Determines if the specified key is an operator.
+    /// </summary>
+    /// <returns><c>true</c> if the specified key is an operator; otherwise, <c>false</c>.</returns>
+    /// <param name="key">Key.</param>
     public static bool IsOperator (string key) {
       switch (key) {
       /* Assignment Operator */
@@ -379,6 +341,16 @@ namespace Metal.FrontEnd.Lex {
       case "*=":
       // Division assignment
       case "/=":
+      // Modulus assignment
+      case "%=":
+      // Logical AND assignment
+      case "&&=":
+      // Logical OR assignment
+      case "||=":
+      // Bitwise AND assignment
+      case "&=":
+      // BItwise OR assignment
+      case "|=":
         
       /* Comparison Operators */
       // Equal to
@@ -393,6 +365,7 @@ namespace Metal.FrontEnd.Lex {
       case ">=":
       // Less than or equal to
       case "<=":
+        
       /* Identity Operators */
       // Strict equal to
       case "===":
@@ -402,6 +375,7 @@ namespace Metal.FrontEnd.Lex {
       /* Ternary Operator */
       // Ternary if
       case "?":
+        
       /* Logical Operator */
       // AND
       case "&&":
@@ -412,12 +386,41 @@ namespace Metal.FrontEnd.Lex {
       
       /* Lambda Operator */
       case "=>":
+        
       /* Dot Operator */
       case ".":
+        
+      /* Bitwise Operators */
+      // NOT
+      case "~":
+      // AND
+      case "&":
+      // OR
+      case "|":
+      // XOR 
+      case "^":
+      // Left Shift
+      case "<<":
+      // Right Shift
+      case ">>":
+      /* Spread Operator */
+      case "...":
+      /* As Operator */
+      case "as":
+      /* Is Operator */
+      case "is":
         return true;
       default:
         return false;
       }
+    }
+
+    /// <summary>
+    /// Determines whether this instance is reserved.
+    /// </summary>
+    /// <returns><c>true</c> if this instance is reserved; otherwise, <c>false</c>.</returns>
+    public bool IsReserved () {
+      return IsReserved (value);
     }
 
     /// <summary>

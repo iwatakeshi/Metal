@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using log4net;
 using Metal.IO;
 
-namespace Metal.FrontEnd.Lex {
+namespace Metal.FrontEnd.Scan {
   public class TokenStream {
     private List<Token> tokens;
     public TokenStream () {
@@ -13,7 +13,7 @@ namespace Metal.FrontEnd.Lex {
     ILog Log { get; set; }
     public bool EOS { get { return tokens.Count <= Position; } }
     public int Position { get; set; }
-    
+    public List<Token> Tokens { get { return tokens; } }
     public void AddToken(Token token){
       tokens.Add(token);
     }

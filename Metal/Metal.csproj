@@ -49,18 +49,18 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
     <Compile Include="IO\File.cs" />
-    <Compile Include="Front End\Lex\Scanner.cs" />
-    <Compile Include="Front End\Lex\Token.cs" />
     <Compile Include="Front End\Parse\Parser.cs" />
-    <Compile Include="Front End\Lex\TokenStream.cs" />
+    <Compile Include="Front End\Scan\Scanner.cs" />
+    <Compile Include="Front End\Scan\Token.cs" />
+    <Compile Include="Front End\Scan\TokenStream.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
     <Folder Include="IO\" />
     <Folder Include="Front End\" />
     <Folder Include="Source Files\" />
-    <Folder Include="Front End\Lex\" />
     <Folder Include="Front End\Parse\" />
+    <Folder Include="Front End\Scan\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

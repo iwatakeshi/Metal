@@ -3,7 +3,7 @@ using Metal.IO;
 using System.Text;
 using log4net;
 
-namespace Metal.FrontEnd.Lex {
+namespace Metal.FrontEnd.Scan {
   /// <summary>
   /// Transforms a stream of characters into a stream of words.
   /// </summary>
@@ -12,13 +12,6 @@ namespace Metal.FrontEnd.Lex {
     /* Private variables */
     StringBuilder buffer;
     Source source;
-
-    public Scanner () {
-      buffer = new StringBuilder ();
-
-      log4net.Config.BasicConfigurator.Configure ();
-      Log = log4net.LogManager.GetLogger (typeof(Scanner));
-    }
 
     public Scanner (string fileName) {
       buffer = new StringBuilder ();
@@ -39,7 +32,6 @@ namespace Metal.FrontEnd.Lex {
       IgnoreWhiteSpace ();
       while (PeekChar () != Source.EOF) {
         var token = NextToken ();
-        Console.WriteLine (token);
         if (token != null) stream.AddToken (token);
         IgnoreWhiteSpace ();
       }
@@ -52,8 +44,8 @@ namespace Metal.FrontEnd.Lex {
     /// <returns>The token.</returns>
     private Token NextToken () {
       buffer.Clear ();
-      char ch = PeekChar ();
-      switch (ch) {
+      var character = PeekChar ();
+      switch (character) {
       case '#':
         return ScanComment ();
       case '\'':
@@ -90,10 +82,10 @@ namespace Metal.FrontEnd.Lex {
       case '%':
       case '@':
       case '?':
+        if (PeekChar () == '/' && PeekChar (1) == '*')
+          return ScanComment ();
+        else return ScanOperator ();
       case ':':
-        if(PeekChar() == '/' && PeekChar(1) == '*')
-          return ScanComment();
-        else return ScanOperator();
       case '{':
       case '}':
       case '(':
@@ -101,14 +93,15 @@ namespace Metal.FrontEnd.Lex {
       case '[':
       case ']':
       case ';':
-			
       case ',':
         return ScanPunctuation ();
       default:
-        if (char.IsLetter (ch)) {
-          return ScanIdentifier ();
+        if (char.IsLetter (character)) {
+          if(PeekChar () == 'a' && PeekChar (1) == 's' || PeekChar () == 'i' && PeekChar (1) == 's')
+            return ScanOperator();
+          else return ScanIdentifier ();
         }
-        Log.Error (String.Format ("Metal [Error]: Unexpected token {0} at line {1}.", NextChar (), Source.Line));
+        Log.Error (String.Format ("Metal [Error]: Invalid character encountered {0} on line {1}.", character.ToString (), Source.Line));
         return null;
       }
     }
@@ -121,6 +114,11 @@ namespace Metal.FrontEnd.Lex {
       return PeekChar (0);
     }
 
+    /// <summary>
+    /// Peeks the the next character in the source text at a given index.
+    /// </summary>
+    /// <returns>The char.</returns>
+    /// <param name="peek">Peek.</param>
     char PeekChar (int peek) {
       if (source.Position + peek >= source.Length)
         return Source.EOF;
@@ -158,13 +156,16 @@ namespace Metal.FrontEnd.Lex {
     /// </summary>
     void IgnoreWhiteSpace () {
       for (;; NextChar ()) {
-        if (PeekChar () == NewLine) {
-        } else if (IsWhiteSpace)
+        if (IsWhiteSpace)
           continue;
         else break;
       }
     }
 
+    /// <summary>
+    /// Gets or sets the logger.
+    /// </summary>
+    /// <value>The logger.</value>
     ILog Log { get; set; }
 
     /// <summary>
@@ -203,142 +204,142 @@ namespace Metal.FrontEnd.Lex {
       }
     }
 
+    /// <summary>
+    /// Scans the identifier.
+    /// </summary>
+    /// <returns>The identifier token.</returns>
     private Token ScanIdentifier () {
       var character = PeekChar ();
       do {
         buffer.Append (NextChar ());
-        character = PeekChar();
+        character = PeekChar ();
       } while (Char.IsLetterOrDigit (character) || character == '_' || character == '$');
-      Console.WriteLine("Consumed Identifier" + buffer.ToString ());
-      if (Token.IsKeyword (buffer.ToString ()))
-        return new Token (TokenType.Keyword, buffer.ToString (), source);
+      
+      if (Token.IsKeyword (buffer.ToString ())){
+        if(buffer.ToString () == "true" || buffer.ToString () == "false")
+          return new Token(TokenType.BooleanLiteral, buffer.ToString (), source);
+        else return new Token (TokenType.Keyword, buffer.ToString (), source);
+      }
+
+        
       else return new Token (TokenType.Identifier, buffer.ToString (), source);
     }
 
+    /// <summary>
+    /// Scans the operator.
+    /// </summary>
+    /// <returns>The operator token.</returns>
     private Token ScanOperator () {
-      /* One Character Operators */
-      string one = NextChar ().ToString ();
-      string two = one + PeekChar ().ToString ();
-      string three = two + PeekChar (1).ToString ();
-      switch (one) {
-      case "=":
-        return new Token (TokenType.AssignmentOperator, one, source);
-      case "+":
-        return new Token (TokenType.AdditionOperator, one, source);
-      case "-":
-        return new Token (TokenType.SubtractionOperator, one, source);
-      case "*":
-        return new Token (TokenType.MuliplicationOperator, one, source);
-      case "/":
-        return new Token (TokenType.DivisionOperator, one, source);
-      case "%":
-        return new Token (TokenType.RemainderOperator, one, source);
-      case ">":
-        return new Token (TokenType.GreaterThanComparisonOperator, one, source);
-      case "<":
-        return new Token (TokenType.LessThanComparisonOperator, one, source);
-      case "?":
-        return new Token (TokenType.IfTernaryOperator, one, source);
-      case "!":
-        return new Token (TokenType.NotLogicalOperator, one, source);
-      case ".":
-        return new Token (TokenType.DotOperator, one, source);
-      default:
-        break;
-      }
-      switch (two) {     
-      case "++":
-        NextChar ();
-        return new Token (TokenType.IncrementOperator, two, source);
-      case "--":
-        NextChar ();
-        return new Token (TokenType.DecrementOperator, two, source);
-      case "+=":
-        NextChar ();
-        return new Token (TokenType.AdditionAssignmentOperator, two, source);
-      case "-=":
-        NextChar ();
-        return new Token (TokenType.SubtractionAssignmentOperator, two, source);
-      case "*=":
-        NextChar ();
-        return new Token (TokenType.MultiplicationAssignmentOperator, two, source);
-      case "/=":
-        NextChar ();
-        return new Token (TokenType.DivisionAssignmentOperator, two, source);
-      case "==":
-        NextChar ();
-        return new Token (TokenType.EqualToComparisonOperator, two, source);
-      case "!=":
-        NextChar ();
-        return new Token (TokenType.NotEqualToComparisonOperator, two, source);
-      case ">=":
-        NextChar ();
-        return new Token (TokenType.GreaterThanEqualToComparisonOperator, two, source);
-      case "<=":
-        NextChar ();
-        return new Token (TokenType.LessThanEqualToComparisonOperator, two, source);
-      case "&&":
-        NextChar ();
-        return new Token (TokenType.AndLogicalOperator, two, source);
-      case "||":
-        NextChar ();
-        return new Token (TokenType.OrLogicalOperator, two, source);
-      case "=>":
-        NextChar ();
-        return new Token (TokenType.LambdaOperator, two, source);
-      }
+      var three = PeekChar ().ToString () + PeekChar (1).ToString () + PeekChar (2).ToString ();
       switch (three) {
       case "===":
-        NextChar ();
-        NextChar ();
-        return new Token (TokenType.StrictEqualToIdentityOperator, three, source);
       case "!==":
+      case "...":
+      case "&&=":
+      case "||=":
         NextChar ();
         NextChar ();
-        return new Token (TokenType.StrictNotEqualToIdentityOperator, three, source);
+        NextChar ();
+        return new Token (TokenType.Operator, three, source);
+      }
+      var two = PeekChar ().ToString () + PeekChar (1).ToString ();
+      switch (two) {
+      case "as":
+      case "is":
+      case "++":
+      case "--":
+      case "+=":
+      case "-=":
+      case "*=":
+      case "%=":
+      case "/=":
+      case "==":
+      case "!=":
+      case ">=":
+      case "<=":
+      case "&&":
+      case "||":
+      case "=>":
+      case "<<":
+      case ">>":
+      case "&=":
+      case "|=":
+        NextChar ();
+        NextChar ();
+        return new Token (TokenType.Operator, two, source);
+      }
+      var one = PeekChar ().ToString ();
+      switch (one) {
+      case "=":
+      case "+":
+      case "-":
+      case "*":
+      case "/":
+      case "%":
+      case ">":
+      case "<":
+      case "?":
+      case "!":
+      case ".":
+      case "~":
+      case "&":
+      case "|": 
+      case "^":
+        NextChar ();
+        return new Token (TokenType.Operator, one, source);
+      default:
+        break;
       }
       return null;
     }
 
+    /// <summary>
+    /// Scans the punctuation.
+    /// </summary>
+    /// <returns>The punctuation token.</returns>
     private Token ScanPunctuation () {
-      NextChar ();
-      TokenType type = TokenType.Invalid;
-      switch (PeekChar ()) {
+      var character = PeekChar ();
+      switch (character) {
       case '{':
-        type = TokenType.LeftBracePunctuation;
-        break;
+        NextChar ();
+        return new Token (TokenType.LeftBracePunctuation, character.ToString (), source);
       case '}':
-        type = TokenType.RightBracePunctuation;
-        break;
+        NextChar ();
+        return new Token (TokenType.RightBracePunctuation, character.ToString (), source);
       case '(':
-        type = TokenType.LeftParenthesisPunctuation;
-        break;
+        NextChar ();
+        return new Token (TokenType.LeftParenthesisPunctuation, character.ToString (), source);
       case ')':
-        type = TokenType.RightParenthesisPunctuation;
-        break;
+        NextChar ();
+        return new Token (TokenType.RightParenthesisPunctuation, character.ToString (), source);
       case '[':
-        type = TokenType.LeftBracketPunctuation;
-        break;
+        NextChar ();
+        return new Token (TokenType.LeftBracketPunctuation, character.ToString (), source);
       case ']':
-        type = TokenType.RightBracketPunctuation;
-        break;
+        NextChar ();
+        return new Token (TokenType.RightBracketPunctuation, character.ToString (), source);
       case ';':
-        type = TokenType.SemiColonPunctuation;
-        break;
+        NextChar ();
+        return new Token (TokenType.SemiColonPunctuation, character.ToString (), source);
       case ':':
-        type = TokenType.ColonPunctuation;
-        break;
+        NextChar ();
+        return new Token (TokenType.ColonPunctuation, character.ToString (), source);
       case ',':
-        type = TokenType.CommaPunctuation;
-        break;
+        NextChar ();
+        return new Token (TokenType.CommaPunctuation, character.ToString (), source);
       }
-      return new Token (type, Char.ToString (PeekChar ()), source);
+      return null;
     }
 
+    /// <summary>
+    /// Scans the comment.
+    /// </summary>
+    /// <returns>Null.</returns>
     private Token ScanComment () {
       var character = PeekChar ();
       switch (character) {
       case '#':
+        NextChar ();
         do {
           character = NextChar ();
         } while (character != Source.EOF && character != NewLine);
@@ -349,16 +350,20 @@ namespace Metal.FrontEnd.Lex {
         if (PeekChar () == '*') {
           NextChar ();
           do {
-            character = NextChar();
-          } while (character != Source.EOF && character != NewLine &&
+            character = NextChar ();
+          } while (character != Source.EOF &&
                    character != '*' && PeekChar () != '/');
-          if(PeekChar() == '/') NextChar();
+          if (PeekChar () == '/') NextChar ();
         }
         break;
       }
       return null;
     }
 
+    /// <summary>
+    /// Scans the string literal.
+    /// </summary>
+    /// <returns>The string literal token.</returns>
     private Token ScanStringLiteral () {
       var delimiter = NextChar ();
       var ch = PeekChar ();
@@ -372,12 +377,16 @@ namespace Metal.FrontEnd.Lex {
         ch = PeekChar ();
       }
       if (NextChar () == Source.EOF) {
-        var error = "Metal [Error]: Invalid string literal on line {0}";
+        var error = "Metal [Error]: Invalid string literal encountered on line {0}.";
         Log.Error (string.Format (error, source.Line));
       }
       return new Token (TokenType.StringLiteral, buffer.ToString (), source);
     }
 
+    /// <summary>
+    /// Scans the number.
+    /// </summary>
+    /// <returns>The number token.</returns>
     private Token ScanNumber () {
       StringBuilder number = new StringBuilder ();
       char ch = PeekChar ();
@@ -392,6 +401,11 @@ namespace Metal.FrontEnd.Lex {
       return new Token (TokenType.IntegerLiteral, number.ToString (), source);
     }
 
+    /// <summary>
+    /// Scans the hexidecimal number.
+    /// </summary>
+    /// <returns>The hexidecimal token.</returns>
+    /// <param name="number">Number token.</param>
     private Token ScanHex (StringBuilder number) {
       NextChar ();
       NextChar ();
@@ -403,10 +417,20 @@ namespace Metal.FrontEnd.Lex {
         System.Globalization.NumberStyles.HexNumber).ToString (), source);
     }
 
-    private static bool IsHex (char c) {
-      return "ABCDEF0123456789".Contains (c.ToString ());
+    /// <summary>
+    /// Determines if the specified character is a hexidecimal number.
+    /// </summary>
+    /// <returns><c>true</c> if is hex the specified c; otherwise, <c>false</c>.</returns>
+    /// <param name="c">C.</param>
+    private static bool IsHex (char character) {
+      return "ABCDEF0123456789".Contains (character.ToString ());
     }
 
+    /// <summary>
+    /// Scans the floating point number.
+    /// </summary>
+    /// <returns>The floating point number.</returns>
+    /// <param name="number">Number token.</param>
     private Token ScanFloatingPoint (StringBuilder number) {
       NextChar ();
       number.Append (".");
