@@ -22,14 +22,14 @@ namespace Metal.FrontEnd.Lex {
 
     public Scanner (string fileName) {
       buffer = new StringBuilder ();
-      source = new Source (fileName, 0, 0, 0);
+      source = new Source (fileName);
       log4net.Config.BasicConfigurator.Configure ();
       Log = log4net.LogManager.GetLogger (typeof(Scanner));
     }
 
     public Scanner (string path, string fileName) {
       buffer = new StringBuilder ();
-      source = new Source (path, fileName, 0, 0, 0);
+      source = new Source (path, fileName);
       log4net.Config.BasicConfigurator.Configure ();
       Log = log4net.LogManager.GetLogger (typeof(Scanner));
     }
@@ -37,7 +37,7 @@ namespace Metal.FrontEnd.Lex {
     public TokenStream Scan () {
       TokenStream stream = new TokenStream ();
       IgnoreWhiteSpace ();
-      while (PeekChar () != '\0') {
+      while (PeekChar () != Source.EOF) {
         var token = NextToken ();
         Console.WriteLine (token);
         if (token != null) stream.AddToken (token);
@@ -91,7 +91,9 @@ namespace Metal.FrontEnd.Lex {
       case '@':
       case '?':
       case ':':
-        return ScanOperator () == null ? ScanComment () : ScanOperator ();
+        if(PeekChar() == '/' && PeekChar(1) == '*')
+          return ScanComment();
+        else return ScanOperator();
       case '{':
       case '}':
       case '(':
@@ -121,7 +123,7 @@ namespace Metal.FrontEnd.Lex {
 
     char PeekChar (int peek) {
       if (source.Position + peek >= source.Length)
-        return '\0';
+        return Source.EOF;
       return source.File[source.Position + peek];
     }
 
@@ -131,8 +133,8 @@ namespace Metal.FrontEnd.Lex {
     /// <returns>The char.</returns>
     char NextChar () {
       if (source.Position >= Source.Length)
-        return '\0';
-      if (source.File[source.Position] == '\n') {
+        return Source.EOF;
+      if (source.File[source.Position] == NewLine) {
         source.Line++;
         source.Column = 0;
       } else source.Column++;
@@ -157,7 +159,6 @@ namespace Metal.FrontEnd.Lex {
     void IgnoreWhiteSpace () {
       for (;; NextChar ()) {
         if (PeekChar () == NewLine) {
-          source.Line++;
         } else if (IsWhiteSpace)
           continue;
         else break;
@@ -203,18 +204,18 @@ namespace Metal.FrontEnd.Lex {
     }
 
     private Token ScanIdentifier () {
-      char character = PeekChar ();
+      var character = PeekChar ();
       do {
         buffer.Append (NextChar ());
+        character = PeekChar();
       } while (Char.IsLetterOrDigit (character) || character == '_' || character == '$');
-      
+      Console.WriteLine("Consumed Identifier" + buffer.ToString ());
       if (Token.IsKeyword (buffer.ToString ()))
         return new Token (TokenType.Keyword, buffer.ToString (), source);
       else return new Token (TokenType.Identifier, buffer.ToString (), source);
     }
 
     private Token ScanOperator () {
-      
       /* One Character Operators */
       string one = NextChar ().ToString ();
       string two = one + PeekChar ().ToString ();
@@ -335,33 +336,25 @@ namespace Metal.FrontEnd.Lex {
     }
 
     private Token ScanComment () {
-      if (PeekChar () == '#') {
+      var character = PeekChar ();
+      switch (character) {
+      case '#':
+        do {
+          character = NextChar ();
+        } while (character != Source.EOF && character != NewLine);
+          
+        break;
+      case '/':
         NextChar ();
-        while (true) {
-          if (PeekChar () == NewLine) {
-            source.Line++;
-            NextChar ();
-            break;
-          }
+        if (PeekChar () == '*') {
           NextChar ();
+          do {
+            character = NextChar();
+          } while (character != Source.EOF && character != NewLine &&
+                   character != '*' && PeekChar () != '/');
+          if(PeekChar() == '/') NextChar();
         }
-      }
-      if (PeekChar () == '/' && PeekChar () == '*') {
-        source.Position += 2;
-        while (true) {
-          if (PeekChar () != '*' && PeekChar () != '/') {
-            if (PeekChar () == NewLine)
-              source.Line++;
-            NextChar ();
-          } else {
-            break;
-          }
-        }
-        if (PeekChar () == '*' && PeekChar () == '/') {
-          source.Position += 2;
-        } else {
-          Log.Error (String.Format ("Metal [Error]: Missing ends to comment on line {0}.", Source.Line));
-        }
+        break;
       }
       return null;
     }
@@ -369,7 +362,7 @@ namespace Metal.FrontEnd.Lex {
     private Token ScanStringLiteral () {
       var delimiter = NextChar ();
       var ch = PeekChar ();
-      while (ch != delimiter && ch != '\0') {
+      while (ch != delimiter && ch != Source.EOF) {
         if (ch == '\\') {
           NextChar ();
           buffer.Append (EscapeChar ());
@@ -378,7 +371,7 @@ namespace Metal.FrontEnd.Lex {
         }
         ch = PeekChar ();
       }
-      if (NextChar () == '\0') {
+      if (NextChar () == Source.EOF) {
         var error = "Metal [Error]: Invalid string literal on line {0}";
         Log.Error (string.Format (error, source.Line));
       }
