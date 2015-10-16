@@ -76,7 +76,7 @@ namespace Flask.FrontEnd {
 		/// </summary>
 		void SkipWhiteSpace (){
 			// Skip white spaces
-			for(;;NextChar ()){
+			for(;; NextChar ()){
 				if (IsWhiteSpace){
 					continue;
 				}

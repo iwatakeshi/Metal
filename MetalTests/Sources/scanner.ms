@@ -26,6 +26,7 @@ fn
 hidden
 is
 import
+init
 let
 module
 new

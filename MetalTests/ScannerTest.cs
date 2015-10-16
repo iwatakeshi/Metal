@@ -5,34 +5,34 @@ using System.IO;
 using System.Collections.Generic;
 
 namespace MetalTests {
-	[TestFixture ()]
-	public class ScannerTest {
-		string seperator = System.IO.Path.DirectorySeparatorChar.ToString ();
-		string directory = Directory.GetParent (Directory.GetCurrentDirectory ()).Parent.FullName;
-		List<TokenType> tokenTypes = new List<TokenType> () {
-			// Test Number, Id, Keyword, Character Literal, and String Literal
-			TokenType.Number, TokenType.Id, TokenType.Keyword, TokenType.CharacterLiteral, 
-			TokenType.StringLiteral,
-			// Test all keywords
-			TokenType.Keyword, TokenType.Keyword, TokenType.Keyword, TokenType.Keyword,
-			TokenType.Keyword, TokenType.Keyword, TokenType.Keyword, TokenType.Keyword,
-			TokenType.Keyword, TokenType.Keyword, TokenType.Keyword, TokenType.Keyword,
-			TokenType.Keyword, TokenType.Keyword, TokenType.Keyword, TokenType.Keyword,
-			TokenType.Keyword, TokenType.Keyword, TokenType.Keyword, TokenType.Keyword,
-			TokenType.Keyword, TokenType.Keyword, TokenType.Keyword, TokenType.Keyword,
-			TokenType.Keyword, TokenType.Keyword,
-		};
+  [TestFixture ()]
+  public class ScannerTest {
+    string seperator = System.IO.Path.DirectorySeparatorChar.ToString ();
+    string directory = Directory.GetParent (Directory.GetCurrentDirectory ()).Parent.FullName;
+    List<TokenType> tokenTypes = new List<TokenType> () {
+      // Test Number, Id, Keyword, Character Literal, and String Literal
+      TokenType.Number, TokenType.Id, TokenType.Keyword, TokenType.CharacterLiteral, 
+      TokenType.StringLiteral,
+      // Test all keywords
+      TokenType.Keyword, TokenType.Keyword, TokenType.Keyword, TokenType.Keyword,
+      TokenType.Keyword, TokenType.Keyword, TokenType.Keyword, TokenType.Keyword,
+      TokenType.Keyword, TokenType.Keyword, TokenType.Keyword, TokenType.Keyword,
+      TokenType.Keyword, TokenType.Keyword, TokenType.Keyword, TokenType.Keyword,
+      TokenType.Keyword, TokenType.Keyword, TokenType.Keyword, TokenType.Keyword,
+      TokenType.Keyword, TokenType.Keyword, TokenType.Keyword, TokenType.Keyword,
+      TokenType.Keyword, TokenType.Keyword, TokenType.Keyword
+    };
 
-		[Test ()]
-		public void TestTokens () {
-			Scanner scanner = new Scanner(directory + seperator + "Sources", "scanner.ms");
-			Assert.IsNotEmpty (scanner.Source.File);
+    [Test ()]
+    public void TestTokens () {
+      Scanner scanner = new Scanner (directory + seperator + "Sources", "scanner.ms");
+      Assert.IsNotEmpty (scanner.Source.File);
 
-			var count = 0;
-			while (!scanner.IsEOF) {
-				Assert.AreEqual (scanner.NextToken ().Type, tokenTypes[count++]);
-			}
-		}
-	}
+      var count = 0;
+      while (!scanner.IsEOF) {
+        Assert.AreEqual (scanner.NextToken ().Type, tokenTypes[count++]);
+      }
+    }
+  }
 }
 
