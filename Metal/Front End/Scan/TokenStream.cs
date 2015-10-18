@@ -13,7 +13,10 @@ namespace Metal.FrontEnd.Scan {
     ILog Log { get; set; }
     public bool EOS { get { return tokens.Count <= Position; } }
     public int Position { get; set; }
-    public List<Token> Tokens { get { return tokens; } }
+    public List<Token> ToBuffer(){
+      return tokens;
+    }
+
     public void AddToken(Token token){
       tokens.Add(token);
     }

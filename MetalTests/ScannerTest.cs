@@ -107,7 +107,7 @@ namespace MetalTests {
 
       var stream = scanner.Scan ();
       int count = 0;
-      foreach (var token in stream.Tokens){
+      foreach (var token in stream.ToBuffer ()){
         Assert.AreEqual (expected[count].Item1, token.Value);
         Assert.AreEqual (expected[count].Item2, token.Type);
         count++;
