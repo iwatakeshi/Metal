@@ -5,20 +5,20 @@ using Metal.IO;
 
 namespace Metal.FrontEnd.Scan {
   public class TokenStream {
-    private List<Token> tokens;
+    private List<Token> buffer;
     public TokenStream () {
-      tokens = new List<Token>();
+      buffer = new List<Token>();
       Log = log4net.LogManager.GetLogger (typeof(Scanner));
     }
     ILog Log { get; set; }
-    public bool EOS { get { return tokens.Count <= Position; } }
+    public bool EOS { get { return buffer.Count <= Position; } }
     public int Position { get; set; }
     public List<Token> ToBuffer(){
-      return tokens;
+      return buffer;
     }
 
     public void AddToken(Token token){
-      tokens.Add(token);
+      buffer.Add(token);
     }
     public bool Match(TokenType type) {
       return PeekToken () != null && 
@@ -89,18 +89,18 @@ namespace Metal.FrontEnd.Scan {
 
 		private Token PeekToken (int n)
 		{
-			if (Position + n < tokens.Count) {
-				return tokens [Position + n];
+			if (Position + n < buffer.Count) {
+				return buffer [Position + n];
 			}
 			return null;
 		}
 
 		public Token ScanToken ()
 		{
-			if (Position >= tokens.Count) {
+			if (Position >= buffer.Count) {
 				return null;
 			}
-			return tokens [Position++];
+			return buffer [Position++];
 		}
 	}
 }
