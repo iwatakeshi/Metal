@@ -14,7 +14,7 @@ namespace Metal.IO {
       FileName = fileName;
       Line = 1;
       Position = 0;
-      Column = 0;
+      Column = 1;
       File = Metal.IO.File.ReadAllText (directory + fileName) + EOF;
       Length = File.Length;
     }
@@ -24,7 +24,7 @@ namespace Metal.IO {
       FileName = fileName;
       Line = 1;
       Position = 0;
-      Column = 0;
+      Column = 1;
       File = Metal.IO.File.ReadAllText (path + seperator + fileName) + EOF;
       Length = File.Length;
     }

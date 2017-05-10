@@ -52,91 +52,25 @@ namespace Metal.FrontEnd.Scan {
   }
 
   public class Token {
-    Source source;
     TokenType type;
-    String value;
-
+    String lexeme;
+    Object literal;
     public Token () {
     }
 
-    public Token (TokenType token, Source source) {
-      this.type = token;
-      this.source = source;
-    }
-
-    public Token (TokenType type, String value, Source source) {
+    public Token (TokenType type) {
       this.type = type;
-      this.value = value;
-      this.source = source;
     }
 
-    /// <summary>
-    /// Gets the source.
-    /// </summary>
-    /// <value>The source.</value>
-    Source Source { get { return source; } }
-
-    /// <summary>
-    /// Gets the token name.
-    /// </summary>
-    /// <value>The name.</value>
-    public string Name {
-      get { 
-        return GetName (type);
-      }
+    public Token (TokenType type, String lexeme) {
+      this.type = type;
+      this.lexeme = lexeme;
     }
 
-    /// <summary>
-    /// Gets the token name.
-    /// </summary>
-    /// <returns>The name.</returns>
-    /// <param name="key">Key.</param>
-    public static string GetName (TokenType key) {
-      switch (key) {
-      /* Literals */
-      case TokenType.StringLiteral:
-        return "String Literal";
-      case TokenType.IntegerLiteral:
-        return "Integer Literal";
-      case TokenType.FloatingPointLiteral:
-        return "Floating Point Literal";
-      case TokenType.BooleanLiteral:
-        return "Boolean Literal";
-      /* Operator */
-      case TokenType.Operator:
-        return "Operator";
-      /* Punctuations */
-      case TokenType.LeftParenthesisPunctuation:
-        return "Left Parenthesis Punctuation";
-      case TokenType.RightParenthesisPunctuation:
-        return "Right Parenthesis Punctuation";
-      case TokenType.LeftBracePunctuation:
-        return "Left Brace Punctuation";
-      case TokenType.RightBracePunctuation:
-        return "Right Brace Punctuation";
-      case TokenType.LeftBracketPunctuation:
-        return "Left Bracket Punctuation";
-      case TokenType.RightBracketPunctuation:
-        return "Right Bracket Punctuation";
-      case TokenType.CommaPunctuation:
-        return "Comma Punctuation";
-      case TokenType.ColonPunctuation:
-        return "Colon Punctuation";
-      case TokenType.SemiColonPunctuation:
-        return "Semi-Colon Punctuation";
-      case TokenType.AtPunctuation:
-        return "At Punctuation";
-      case TokenType.Identifier:
-        return "Identifier";
-      case TokenType.Keyword:
-        return "Keyword";
-      case TokenType.Invalid:
-        return "Invalid Token";
-      case TokenType.EOF:
-        return "End of File";
-      default:
-        return "";
-      }
+    public Token (TokenType type, String lexeme, Object literal) {
+      this.type = type;
+      this.lexeme = lexeme;
+      this.literal = literal;
     }
 
     /// <summary>
@@ -146,68 +80,11 @@ namespace Metal.FrontEnd.Scan {
     public TokenType Type { get { return type; } }
 
     /// <summary>
-    /// Gets the value of the current token.
-    /// </summary>
-    /// <value>The value.</value>
-    public string Value { get { return value; } }
-
-    /// <summary>
-    /// Returns a <see cref="System.String"/> that represents the current <see cref="Metal.FrontEnd.Lex.Token"/>.
-    /// </summary>
-    /// <returns>A <see cref="System.String"/> that represents the current <see cref="Metal.FrontEnd.Lex.Token"/>.</returns>
-    public override string ToString () {
-      return string.Format ("Type: {0}, Value: {1}, Is Reserved: {2}, {3}", Name, value, IsReserved (value), source.ToString ());
-    }
-
-    /// <summary>
-    /// Returns a JSON object that represents the current <see cref="Metal.FrontEnd.Lex.Token"/>.
-    /// </summary>
-    /// <returns>The JSON object.</returns>
-    public object ToJson () {
-      String val;
-      switch (type) {
-      case TokenType.StringLiteral:
-      case TokenType.Identifier:
-      case TokenType.Keyword:
-      case TokenType.Operator:
-      case TokenType.AtPunctuation:
-      case TokenType.ColonPunctuation:
-      case TokenType.CommaPunctuation:
-      case TokenType.LeftBracePunctuation:
-      case TokenType.LeftBracketPunctuation:
-      case TokenType.LeftParenthesisPunctuation:
-      case TokenType.RightBracePunctuation:
-      case TokenType.RightBracketPunctuation:
-      case TokenType.RightParenthesisPunctuation:
-      case TokenType.SemiColonPunctuation:
-        val = "\"" + value + "\"";
-        break;
-      case TokenType.IntegerLiteral:
-      case TokenType.FloatingPointLiteral:
-      case TokenType.BooleanLiteral:
-        val = value;
-        break;
-      default:
-        val = "";
-        break;
-      }
-      var str = string.Format ("{{ \"token\": {{ \"type\": \"{0}\", \"value\": {1}, \"isReserved\": {2} }} }}", 
-        Name, val, IsReserved (val).ToString ().ToLower ());
-      var mergeSettings = new JsonMergeSettings {
-        MergeArrayHandling = MergeArrayHandling.Union
-      };
-
-      var json = JObject.Parse (str);
-      json.Merge (source.ToJson (), mergeSettings);
-      return json;
-    }
-
-    /// <summary>
     /// Determines whether this instance is a keyword.
     /// </summary>
     /// <returns><c>true</c> if this instance is a keyword; otherwise, <c>false</c>.</returns>
     public bool IsKeyword () {
-      return IsKeyword (value);
+      return IsKeyword (lexeme);
     }
 
     /// <summary>
@@ -266,7 +143,7 @@ namespace Metal.FrontEnd.Scan {
     /// </summary>
     /// <returns><c>true</c> if this instance is a punctuation; otherwise, <c>false</c>.</returns>
     public bool IsPunctuation () {
-      return IsPunctuation (value);
+      return IsPunctuation (lexeme);
     }
 
     /// <summary>
@@ -300,7 +177,7 @@ namespace Metal.FrontEnd.Scan {
     /// </summary>
     /// <returns><c>true</c> if this instance is an operator; otherwise, <c>false</c>.</returns>
     public bool IsOperator () {
-      return IsOperator (value);
+      return IsOperator (lexeme);
     }
 
     /// <summary>
@@ -420,7 +297,7 @@ namespace Metal.FrontEnd.Scan {
     /// </summary>
     /// <returns><c>true</c> if this instance is reserved; otherwise, <c>false</c>.</returns>
     public bool IsReserved () {
-      return IsReserved (value);
+      return IsReserved (lexeme);
     }
 
     /// <summary>
