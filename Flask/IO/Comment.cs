@@ -1,5 +1,6 @@
 ﻿using System;
 using Flask.FrontEnd;
+using Flask.FrontEnd.Scan;
 
 namespace Flask.IO {
 	public class Comment {

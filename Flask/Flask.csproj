@@ -35,9 +35,9 @@
   <ItemGroup>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Front End\Scan\Scanner.cs" />
+    <Compile Include="FrontEnd\Scan\Scanner.cs" />
     <Compile Include="IO\Comment.cs" />
-    <Compile Include="Front End\Scan\Token.cs" />
+    <Compile Include="FrontEnd\Scan\Token.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup />

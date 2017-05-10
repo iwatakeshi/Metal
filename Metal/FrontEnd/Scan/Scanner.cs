@@ -138,12 +138,12 @@ namespace Metal.FrontEnd.Scan {
 
     private char Current() {
       if (source.Position >= source.File.Length) return File.EOF;
-      return source.File [source.Position];
+      return source.File[source.Position];
     }
 
     private char Next() {
       source.Position++;
-      char ch = source.File [source.Position - 1];
+      char ch = source.File[source.Position - 1];
       if (ch == '\n') {
         source.Line++;
         source.Column = 1;
@@ -157,7 +157,7 @@ namespace Metal.FrontEnd.Scan {
 
     private char Peek(int to) {
       if (source.Position + to >= source.File.Length) return File.EOF;
-      return source.File [source.Position + to];
+      return source.File[source.Position + to];
     }
 
     private Token ScanNumber() {
@@ -185,6 +185,14 @@ namespace Metal.FrontEnd.Scan {
       string lexeme = source.File.Substring(Start, End);
       if (Token.IsReserved(lexeme)) type = TokenType.Reserved;
       if (Token.IsOperator(lexeme)) type = TokenType.Operator;
+      if (Token.IsLiteral(lexeme)) {
+        switch (lexeme) {
+          case "null": type = TokenType.NullLiteral; break;
+          case "true": case "false": 
+            type = TokenType.BooleanLiteral; break;
+          default: break;
+        }
+      }
       return AddToken(type, lexeme);
     }
 

@@ -1,18 +1,23 @@
-﻿using System;
+﻿﻿﻿using System;
 //using CommandLine;
 //using CommandLine.Text;
 using Metal.FrontEnd.Scan;
 using System.Collections.Generic;
+using Metal.FrontEnd.Parse;
+using Metal.FrontEnd.Parse.Grammar;
 
 namespace Metal {
 
   public static class Metal {
     private static bool hadError = true;
-    static void Main(string [] args) {
+    static void Main(string[] args) {
+            foreach(var arg in args) {
+                Console.WriteLine (arg);
+            }
       if (args.Length > 1) {
         Console.WriteLine("Usage: metal [file]");
       } else if (args.Length == 1) {
-        RunFile(args [0]);
+        RunFile(args[0]);
       } else {
         RunPrompt();
       }
@@ -21,9 +26,15 @@ namespace Metal {
     private static void Run(string source, bool isFile) {
       Scanner scanner = new Scanner(source, isFile);
       List<Token> tokens = scanner.ScanTokens();
-      foreach (var token in tokens) {
-        Console.WriteLine(token);
+      Parser parser = new Parser(tokens);
+      Expression expression = parser.Parse();
+
+      if (!hadError) {
+        Console.WriteLine(new ASTPrinter().Print(expression));
       }
+      // foreach (var token in tokens) {
+      //   Console.WriteLine(token);
+      // }
     }
 
     private static void RunFile(string source) {
@@ -47,6 +58,13 @@ namespace Metal {
       Report(line, "", message);
     }
 
+    public static void Error(Token token, string message) {
+      if (token.Type == TokenType.EOF) {
+        Report(token.Line, " at end", message);
+      } else {
+        Report(token.Line, " at '" + token.Lexeme + "'", message);
+      }
+    }
     public static void Report(int line, string where, string message) {
       Console.WriteLine(string.Format("[line {0}] Error {1}: {2}", line, where, message));
       hadError = true;

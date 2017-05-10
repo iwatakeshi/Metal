@@ -14,7 +14,8 @@ namespace Metal.FrontEnd.Scan {
     FloatingPointLiteral,
     // true
     BooleanLiteral,
-
+    // null
+    NullLiteral,
     /* Identifier */
     Identifier,
 
@@ -154,6 +155,20 @@ namespace Metal.FrontEnd.Scan {
       }
     }
 
+    public bool IsLiteral() {
+      return IsLiteral(lexeme);
+    }
+
+    public static bool IsLiteral(string key) {
+      switch(key) {
+        case "null":
+        case "true":
+        case "false":
+          return true;
+        default: 
+          return false;
+      }
+    }
     /// <summary>
     /// Determines whether this instance is a punctuation.
     /// </summary>

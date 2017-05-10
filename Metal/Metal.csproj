@@ -7,7 +7,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>Metal</RootNamespace>
     <AssemblyName>Metal</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <DebugSymbols>true</DebugSymbols>
@@ -35,33 +35,28 @@
     <Reference Include="CommandLine">
       <HintPath>..\packages\CommandLineParser.1.9.71\lib\net45\CommandLine.dll</HintPath>
     </Reference>
-    <Reference Include="log4net">
-      <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
-    </Reference>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>..\packages\Newtonsoft.Json.10.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
-    </Reference>
     <Reference Include="System.ValueTuple, Version=4.0.1.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.ValueTuple.4.3.1\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Front End\Parse\Grammar\Expression.cs" />
+    <Compile Include="FrontEnd\Parse\Grammar\Expression.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="IO\Source.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
     <Compile Include="IO\File.cs" />
-    <Compile Include="Front End\Parse\Parser.cs" />
-    <Compile Include="Front End\Scan\Scanner.cs" />
-    <Compile Include="Front End\Scan\Token.cs" />
+    <Compile Include="FrontEnd\Parse\Parser.cs" />
+    <Compile Include="FrontEnd\Scan\Scanner.cs" />
+    <Compile Include="FrontEnd\Scan\Token.cs" />
+    <Compile Include="FrontEnd\Parse\Grammar\Utilities\ASTPrinter.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup />
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="Front End\FrontEnd.md" />
+    <None Include="FrontEnd\FrontEnd.md" />
     <None Include="Source Files\index.ms">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -71,5 +66,8 @@
       <Project>{2357F43E-1B6F-48DC-A2E4-6DE354E9815D}</Project>
       <Name>Flask</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="FrontEnd\Parse\Grammar\Utilities\" />
   </ItemGroup>
 </Project>

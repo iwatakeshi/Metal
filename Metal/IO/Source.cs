@@ -1,7 +1,5 @@
-﻿using System;
-using Newtonsoft.Json.Linq;
-
-namespace Metal.IO {
+﻿namespace Metal.IO
+{
 
   public class Source {
     string seperator = System.IO.Path.DirectorySeparatorChar.ToString();
