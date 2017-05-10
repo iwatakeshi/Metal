@@ -12,7 +12,8 @@ namespace Metal.IO {
         return reader.ReadToEnd ();
       }
     }
-		
+
+    public static char EOF { get { return '\0'; } }
   }
 }
 

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -35,13 +35,10 @@
   <ItemGroup>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Front End\Scanner.cs" />
+    <Compile Include="Front End\Scan\Scanner.cs" />
     <Compile Include="IO\Comment.cs" />
-    <Compile Include="Front End\Token.cs" />
+    <Compile Include="Front End\Scan\Token.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
-  <ItemGroup>
-    <Folder Include="Front End\" />
-    <Folder Include="IO\" />
-  </ItemGroup>
+  <ItemGroup />
 </Project>
