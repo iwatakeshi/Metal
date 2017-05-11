@@ -1,10 +1,4 @@
-﻿using NUnit.Framework;
-using System;
-using Metal.FrontEnd.Scan;
-using System.IO;
-using System.Collections.Generic;
-
-namespace MetalTests {
+﻿namespace MetalTests {
   //[TestFixture ()]
   //public class ScannerTest {
   //  static string seperator = System.IO.Path.DirectorySeparatorChar.ToString ();
@@ -102,7 +96,7 @@ namespace MetalTests {
 
   //  [Test ()]
   //  public void TestTokens () {
-      
+
   //    Assert.IsNotEmpty (scanner.Source.File);
 
   //    var stream = scanner.Scan ();

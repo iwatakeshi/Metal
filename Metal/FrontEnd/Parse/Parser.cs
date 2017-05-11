@@ -2,9 +2,7 @@
 using Metal.FrontEnd.Scan;
 using System;
 using System.Collections.Generic;
-#if WINDOWS
-using System.ValueType;
-#endif
+
 namespace Metal.FrontEnd.Parse {
   public class Parser {
     private class ParseError : Exception { }

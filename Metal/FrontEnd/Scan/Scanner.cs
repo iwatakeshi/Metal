@@ -170,9 +170,16 @@ namespace Metal.FrontEnd.Scan {
         while (Char.IsDigit(Current())) Next();
       }
       string lexeme = source.File.Substring(Start, End);
-      TokenType type = TokenType.IntegerLiteral;
-      if (lexeme.Contains(".")) type = TokenType.FloatingPointLiteral;
-      return AddToken(type, lexeme);
+      TokenType type = lexeme.Contains(".") ? TokenType.FloatingPointLiteral : TokenType.IntegerLiteral;
+      object literal = null;
+      if (lexeme.Contains(".")) {
+        Double.TryParse(lexeme, out var number);
+        literal = number;
+      } else {
+        Int32.TryParse(lexeme, out var number);
+        literal = number; 
+      }
+      return AddToken(type, literal);
     }
 
     private Token ScanIdentifier() {
@@ -183,9 +190,9 @@ namespace Metal.FrontEnd.Scan {
         return Char.IsLetterOrDigit(ch) || ch == '_' || ch == '$';
       }
       string lexeme = source.File.Substring(Start, End);
-      if (Token.IsReserved(lexeme)) type = TokenType.Reserved;
-      if (Token.IsOperator(lexeme)) type = TokenType.Operator;
-      if (Token.IsLiteral(lexeme)) {
+      if (Token.IsReservedWord(lexeme)) type = TokenType.Reserved;
+      if (Token.IsOperatorString(lexeme)) type = TokenType.Operator;
+      if (Token.IsLiteralString(lexeme)) {
         switch (lexeme) {
           case "null": type = TokenType.NullLiteral; break;
           case "true": case "false": 

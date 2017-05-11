@@ -96,7 +96,10 @@ namespace Metal.FrontEnd.Scan {
     /// </summary>
     /// <returns><c>true</c> if this instance is a keyword; otherwise, <c>false</c>.</returns>
     public bool IsReserved() {
-      return IsReserved(lexeme);
+      return Token.IsReservedWord(lexeme);
+    }
+    public bool IsReserved(string lexeme) {
+      return Token.IsReservedWord(this.lexeme) && this.lexeme == lexeme;
     }
 
     /// <summary>
@@ -104,7 +107,7 @@ namespace Metal.FrontEnd.Scan {
     /// </summary>
     /// <returns><c>true</c> if the specified key is a keyword; otherwise, <c>false</c>.</returns>
     /// <param name="key">Key.</param>
-    public static bool IsReserved(string key) {
+    public static bool IsReservedWord(string key) {
       switch (key) {
         /* Reserved words used in declarations */
         case "class":
@@ -156,10 +159,14 @@ namespace Metal.FrontEnd.Scan {
     }
 
     public bool IsLiteral() {
-      return IsLiteral(lexeme);
+      return IsLiteralString(lexeme);
     }
 
-    public static bool IsLiteral(string key) {
+    public bool IsLiteral(string lexeme) {
+      return IsLiteralString(this.lexeme) && this.lexeme == lexeme;
+    }
+
+    public static bool IsLiteralString(string key) {
       switch(key) {
         case "null":
         case "true":
@@ -174,15 +181,17 @@ namespace Metal.FrontEnd.Scan {
     /// </summary>
     /// <returns><c>true</c> if this instance is a punctuation; otherwise, <c>false</c>.</returns>
     public bool IsPunctuation() {
-      return IsPunctuation(lexeme);
+      return IsPunctuationChar(lexeme);
     }
-
+    public bool IsPunctuation(string lexeme) {
+      return IsPunctuationChar(this.lexeme) && this.lexeme == lexeme;
+    }
     /// <summary>
     /// Determines if the specified key is a punctuation .
     /// </summary>
     /// <returns><c>true</c> if the specified key is a punctuation; otherwise, <c>false</c>.</returns>
     /// <param name="key">Key.</param>
-    public static bool IsPunctuation(string key) {
+    public static bool IsPunctuationChar(string key) {
       switch (key) {
         case "(":
         case ")":
@@ -208,7 +217,11 @@ namespace Metal.FrontEnd.Scan {
     /// </summary>
     /// <returns><c>true</c> if this instance is an operator; otherwise, <c>false</c>.</returns>
     public bool IsOperator() {
-      return IsOperator(lexeme);
+      return IsOperatorString(lexeme);
+    }
+
+    public bool IsOperator(string lexeme) {
+      return IsOperatorString(this.lexeme) && this.lexeme == lexeme;
     }
 
     /// <summary>
@@ -216,7 +229,7 @@ namespace Metal.FrontEnd.Scan {
     /// </summary>
     /// <returns><c>true</c> if the specified key is an operator; otherwise, <c>false</c>.</returns>
     /// <param name="key">Key.</param>
-    public static bool IsOperator(string key) {
+    public static bool IsOperatorString(string key) {
       switch (key) {
         /* Assignment Operator */
         case "=":
