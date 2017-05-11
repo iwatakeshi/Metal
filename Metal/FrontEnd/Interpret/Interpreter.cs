@@ -12,77 +12,68 @@ namespace Metal.FrontEnd.Interpret {
       // '+' operator
       if (expression.Operator.IsOperator("+")) {
 
-        if (left is int && right is int) {
-          var result1 = ConvertObjectToInt(left, right);
-          return result1.Item1 + result1.Item2;
+        CheckNullOperand(expression.Operator, left, right);
+
+        if (left is string || right is string) {
+          //Console.WriteLine(string.Format("left {0}, right {1}", left.ToString(), right.ToString()));
+          return left.ToString() + right.ToString();
         }
-        if (left is double && right is double) {
-          var result2 = ConvertObjectToDouble(left, right);
-          return result2.Item1 + result2.Item2;
+
+        if (left is int && right is int) {
+          return ApplyIntOperatorToOperand(ConvertObjectToInt(left, right), "+");
         }
 
         if ((left is int || left is double) && (right is int || right is double)) {
-          var result3 = ConvertObjectToDouble(left, right);
-          return result3.Item1 + result3.Item2;
-        }
-
-        if (left is string || right is string) {
-          Console.WriteLine(string.Format("left {0}, right {1}", left.ToString(), right.ToString()));
-          return left.ToString() + right.ToString();
+          return ApplyDoubleOperatorToOperand(ConvertObjectToDouble(left, right), "+");
         }
       }
 
       // '-' operator
       if (expression.Operator.IsOperator("-")) {
-        if ((left is int || left is double) && (right is int || right is double)) {
-          var result4 = ConvertObjectToDouble(left, right);
-          return result4.Item1 - result4.Item2;
+        if (left is int && right is int) {
+          return ApplyIntOperatorToOperand(ConvertObjectToInt(left, right), "-");
         }
-        var result5 = ConvertObjectToInt(left, right);
-        return result5.Item1 - result5.Item2;
-      }
-
-      // '/' operator
-      if (expression.Operator.IsOperator("/")) {
-        if ((left is int || left is double) && (right is int || right is double)) {
-          var result6 = ConvertObjectToDouble(left, right);
-          return result6.Item1 / result6.Item2;
-        }
-
-        var result7 = ConvertObjectToInt(left, right);
-        return result7.Item1 / result7.Item2;
+        return ApplyDoubleOperatorToOperand(ConvertObjectToInt(left, right), "-");
       }
 
       // '*' operator
       if (expression.Operator.IsOperator("*")) {
-        if ((left is int || left is double) && (right is int || right is double)) {
-          var result8 = ConvertObjectToDouble(left, right);
-          return result8.Item1 * result8.Item2;
+
+        if(left is int && right is int) {
+          return ApplyIntOperatorToOperand(ConvertObjectToInt(left, right), "*");
         }
-        var result9 = ConvertObjectToInt(left, right);
-        return result9.Item1 * result9.Item2;
+
+        if ((left is int || left is double) && (right is int || right is double)) {
+          return ApplyDoubleOperatorToOperand(ConvertObjectToInt(left, right), "*");
+        }
+      }
+
+      // '/' operator
+      if (expression.Operator.IsOperator("/")) {
+        if (left is int && right is int) {
+          return ApplyIntOperatorToOperand(ConvertObjectToInt(left, right), "/");
+        }
+        if ((left is int || left is double) && (right is int || right is double)) {
+          return ApplyDoubleOperatorToOperand(ConvertObjectToDouble(left, right), "/");
+        }
       }
 
       // '>', '>=', '<', '<=' operators
       if (expression.Operator.IsOperator(">")) {
         CheckNumberOperand(expression.Operator, left, right);
-        var result10 = ConvertObjectToDouble(left, right);
-        return result10.Item1 > result10.Item2;
+        return ApplyBoolOperatorToOperand(ConvertObjectToDouble(left, right), ">");
       }
       if (expression.Operator.IsOperator(">=")) {
         CheckNumberOperand(expression.Operator, left, right);
-        var result11 = ConvertObjectToDouble(left, right);
-        return result11.Item1 >= result11.Item2;
+        return ApplyBoolOperatorToOperand(ConvertObjectToDouble(left, right), ">=");
       }
       if (expression.Operator.IsOperator("<")) {
         CheckNumberOperand(expression.Operator, left, right);
-        var result12 = ConvertObjectToDouble(left, right);
-        return result12.Item1 < result12.Item2;
+        return ApplyBoolOperatorToOperand(ConvertObjectToDouble(left, right), "<");
       }
       if (expression.Operator.IsOperator("<=")) {
         CheckNumberOperand(expression.Operator, left, right);
-        var result13 = ConvertObjectToDouble(left, right);
-        return result13.Item1 <= result13.Item2;
+        return ApplyBoolOperatorToOperand(ConvertObjectToDouble(left, right), "<=");
       }
 
       // Check equality
@@ -116,15 +107,51 @@ namespace Metal.FrontEnd.Interpret {
     private (int, int) ConvertObjectToInt(object left, object right) {
       int.TryParse(left.ToString(), out int a);
       int.TryParse(right.ToString(), out int b);
-      Console.WriteLine(string.Format("a {0}, b {1}", a, b));
+      //Console.WriteLine(string.Format("a {0}, b {1}", a, b));
       return (a, b);
     }
 
     private (double, double) ConvertObjectToDouble(object left, object right) {
       double.TryParse(left.ToString(), out double a);
       double.TryParse(right.ToString(), out double b);
-      Console.WriteLine(string.Format("a {0}, b {1}", a, b));
+      //Console.WriteLine(string.Format("a {0}, b {1}", a, b));
       return (a, b);
+    }
+
+    private int ApplyIntOperatorToOperand((int, int) operands, string operand) {
+      switch (operand) {
+        case "+": return operands.Item1 + operands.Item2;
+        case "-": return operands.Item1 - operands.Item2;
+        case "*": return operands.Item1 * operands.Item2;
+        case "/": return operands.Item1 / operands.Item2;
+      }
+      return 0;
+    }
+
+    private double ApplyDoubleOperatorToOperand((double, double) operands, string operand) {
+      switch (operand) {
+        case "+": return operands.Item1 + operands.Item2;
+        case "-": return operands.Item1 - operands.Item2;
+        case "*": return operands.Item1 * operands.Item2;
+        case "/": return operands.Item1 / operands.Item2;
+      }
+      return 0.0f;
+    }
+
+    private bool ApplyBoolOperatorToOperand((double, double) operands, string operand) {
+      switch (operand) {
+        case ">": return operands.Item1 > operands.Item2;
+        case ">=": return operands.Item1 >= operands.Item2;
+        case "<": return operands.Item1 < operands.Item2;
+        case "<=": return operands.Item1 <= operands.Item2;
+      }
+      return false;
+    }
+
+    private void CheckNullOperand(Token @operator, object left, object right) {
+      if (left == null || right == null) {
+        throw new RuntimeError(@operator, "Operand must not be null.");
+      }
     }
 
     private void CheckNumberOperand(Token @operator, object operand) {
