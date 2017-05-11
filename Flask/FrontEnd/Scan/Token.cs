@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Flask.FrontEnd.Lex {
+namespace Flask.FrontEnd.Scan {
 	public class Token {
 		public Token () {
 		}

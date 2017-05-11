@@ -1,8 +1,7 @@
 ﻿using System;
-using Flask.FrontEnd.Lex;
 using System.Text;
 
-namespace Flask.FrontEnd {
+namespace Flask.FrontEnd.Scan {
 	public class Scanner {
 		StringBuilder buffer;
 		string file;
