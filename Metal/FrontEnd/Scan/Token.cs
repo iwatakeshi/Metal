@@ -149,6 +149,7 @@ namespace Metal.FrontEnd.Scan {
         case "char":
         case "int":
         case "double":
+        case "bool":
         /* Reserved words in particular contexts */
         case "get":
         case "set":

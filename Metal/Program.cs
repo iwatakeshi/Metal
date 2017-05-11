@@ -34,7 +34,7 @@ namespace Metal {
       Expression expression = parser.Parse();
 
       if (!hadError) {
-        Console.WriteLine(new ASTPrinter().Print(expression));
+        //Console.WriteLine(new ASTPrinter().Print(expression));
         interpreter.Interpret(expression);
       } else Console.WriteLine("An error occurred.");
       // foreach (var token in tokens) {

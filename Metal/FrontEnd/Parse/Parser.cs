@@ -115,7 +115,7 @@ namespace Metal.FrontEnd.Parse {
     }
 
     private Expression ParseUnary() {
-      if (Match((TokenType.Operator, "?"), (TokenType.Operator, "-"))) {
+      if (Match((TokenType.Operator, "!"), (TokenType.Operator, "-"))) {
         Token @operator = Previous();
         Expression right = ParseUnary();
         return new Expression.Unary(@operator, right);
