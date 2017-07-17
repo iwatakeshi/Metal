@@ -1,10 +1,7 @@
 ﻿using System;
-//using CommandLine;
-//using CommandLine.Text;
 using Metal.FrontEnd.Scan;
 using System.Collections.Generic;
 using Metal.FrontEnd.Parse;
-using Metal.FrontEnd.Parse.Grammar;
 using Metal.Diagnostics.Runtime;
 using Metal.FrontEnd.Interpret;
 
@@ -14,28 +11,30 @@ namespace Metal {
     private static bool hadError = false;
     private static bool hadRuntimeError = false;
     private static Interpreter interpreter = new Interpreter();
-    static void Main(string [] args) {
+    static void Main(string[] args) {
       foreach (var arg in args) {
         Console.WriteLine(arg);
       }
       if (args.Length > 1) {
         Console.WriteLine("Usage: metal [file]");
       } else if (args.Length == 1) {
-        RunFile(args [0]);
+          RunFile(args[0]);
       } else {
         RunPrompt();
       }
     }
 
     private static void Run(string source, bool isFile) {
-      Scanner scanner = new Scanner(source, isFile);
-      List<Token> tokens = scanner.ScanTokens();
-      Parser parser = new Parser(tokens);
-      Expression expression = parser.Parse();
-
       if (!hadError) {
         //Console.WriteLine(new ASTPrinter().Print(expression));
-        interpreter.Interpret(expression);
+        try {
+          Scanner scanner = new Scanner(source, isFile);
+          List<Token> tokens = scanner.ScanTokens();
+          Parser parser = new Parser(tokens);
+          var statements = parser.Parse();
+          interpreter.Interpret(statements);
+        } catch (Exception error) {
+        }
       } else Console.WriteLine("An error occurred.");
       // foreach (var token in tokens) {
       //   Console.WriteLine(token);
@@ -49,16 +48,17 @@ namespace Metal {
     }
 
     private static void RunPrompt() {
-      Console.WriteLine(About.Name);
-      Console.WriteLine(About.Version);
-      Console.WriteLine(About.License);
-      Console.WriteLine();
+      About.Print();
       for (;;) {
         Console.Write("> ");
-        Run(Console.In.ReadLine(), false);
+        var line = Console.In.ReadLine();
+        if (line == "clear") {
+          hadError = false;
+          Console.Clear();
+          About.Print();
+        } else Run(line, false);
       }
     }
-
 
     public static void Error(int line, string message) {
       Report(line, "", message);
@@ -91,6 +91,13 @@ namespace Metal {
       public static String License { get { return String.Format("MIT License \n{0}", Copyright); } }
 
       public static String Copyright { get { return String.Format("Copyright (c) {0} - {1} {2}", 2015, DateTime.Now.Year.ToString(), Author); } }
+
+      public static void Print() {
+        Console.WriteLine(About.Name);
+        Console.WriteLine(About.Version);
+        Console.WriteLine(About.License);
+        Console.WriteLine();
+      }
     }
   }
 }

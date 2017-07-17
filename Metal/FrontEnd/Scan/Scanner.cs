@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Metal;
 using Metal.IO;
+using System.Text.RegularExpressions;
 
 namespace Metal.FrontEnd.Scan {
 
@@ -125,7 +126,10 @@ namespace Metal.FrontEnd.Scan {
       Next();
       string lexeme = source.File.Substring(Start, End);
       string literal = source.File.Substring(Start + 1, End - 2);
-      if (literal.Length > 1) { Metal.Error(source.Line, "Unrecognized character literal."); }
+      if (literal.Contains("\\")) {
+        return AddToken(TokenType.CharacterLiteral, lexeme, Regex.Escape(literal));
+      }
+      else if(literal.Length > 1) { Metal.Error(source.Line, "Unrecognized character literal."); }
       return AddToken(TokenType.CharacterLiteral, lexeme, literal);
     }
 
