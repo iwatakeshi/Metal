@@ -20,17 +20,18 @@ namespace Metal.FrontEnd.Parse {
       this.tokens = tokens;
     }
 
-    public Expression Parse() {
+    internal List<Statement> Parse() {
       if (scanner != null) {
         scanner.ScanSafeToken();
         tokens = scanner.Tokens;
       }
-      try {
-        return ParseExpression();
-      } catch (ParseError error) {
-        return null;
+      List<Statement> statements = new List<Statement>();
+      while (!IsAtEnd) {
+        statements.Add(ParseDeclaration());
       }
+      return statements;
     }
+
 
     private Token Current() {
       return tokens[position];
@@ -41,7 +42,7 @@ namespace Metal.FrontEnd.Parse {
         tokens = scanner.Tokens;
       }
       if (!IsAtEnd) position++;
-      return tokens[position];
+      return Previous();
     }
     private Token Previous() {
       return tokens[position - 1];
@@ -55,16 +56,84 @@ namespace Metal.FrontEnd.Parse {
         var types = new List<(TokenType, string)> {
           (TokenType.Reserved, "class"), (TokenType.Reserved, "fn"),
           (TokenType.Reserved, "var"), (TokenType.Reserved, "let"),
-          (TokenType.Reserved, "for"), (TokenType.Reserved, "if"), 
-          (TokenType.Reserved, "while"), (TokenType.Reserved, "return")
+          (TokenType.Reserved, "for"), (TokenType.Reserved, "if"),
+          (TokenType.Reserved, "while"), (TokenType.Reserved, "return"),
+          (TokenType.Reserved, "print")
         };
         if (types.Contains((type, lexeme))) return;
         Next();
       }
     }
 
+    private Statement ParseStatement() {
+      if (Match((TokenType.Reserved, "print"))) {
+        Consume(TokenType.LeftParenthesisPunctuation, "Expect '(' after print.");
+        var print = ParsePrintStatement();
+        Consume(TokenType.RightParenthesisPunctuation, "Expect ')' after print.");
+        Consume(TokenType.SemiColonPunctuation, "Expect ';' after expression.");
+        return print;
+      }
+      if (Match(TokenType.LeftBracePunctuation)) {
+        return new Statement.Block(ParseBlockStatement());
+      }
+      return ParseExpressionStatement();
+    }
+    private Statement ParseExpressionStatement() {
+      Expression expr = ParseExpression();
+      Consume(TokenType.SemiColonPunctuation, "Expect ';' after expression.");
+      return new Statement.Expr(expr);
+    }
+    private Statement ParsePrintStatement() {
+      Expression value = ParseExpression();
+      return new Statement.Print(value);
+    }
+
+    private List<Statement> ParseBlockStatement() {
+      List<Statement> statements = new List<Statement>();
+      while(!Check(TokenType.RightBracePunctuation) && !IsAtEnd) {
+        statements.Add(ParseDeclaration());
+      }
+      Consume(TokenType.RightBracePunctuation, "Expect '}' after block.");
+      return statements;
+    }
+
+    private Statement ParseDeclaration() {
+      try {
+        if (Match((TokenType.Reserved, "var"))) return ParseVarDeclaration();
+        return ParseStatement();
+      } catch(ParseError error) {
+        Synchronize();
+        return null;
+      }
+    }
+
+    private Statement ParseVarDeclaration() {
+      Token name = Consume(TokenType.Identifier, "Expect variable name.");
+      Expression initializer = null;
+      if (Match((TokenType.Operator, "="))) {
+        initializer = ParseExpression();
+      }
+
+      Consume(TokenType.SemiColonPunctuation, "Expect ';' after variable declaration.");
+      return new Statement.Var(name, initializer);
+    }
+
     private Expression ParseExpression() {
-      return ParseEquality();
+      return ParseAssignment();
+    }
+
+    private Expression ParseAssignment() {
+      Expression expression = ParseEquality();
+      if (Match((TokenType.Operator, "="))) {
+        Token equals = Previous();
+        Expression value = ParseAssignment();
+        if (expression.GetType() == typeof(Expression.Variable)) {
+          Token name = ((Expression.Variable)expression).Name;
+          return new Expression.Assign(name, value);
+        }
+        throw Error(equals, "Invalid assignment target.");
+      }
+      return expression;
     }
 
     private Expression ParseEquality() {
@@ -127,17 +196,24 @@ namespace Metal.FrontEnd.Parse {
       if (Match((TokenType.BooleanLiteral, "false"))) return new Expression.Literal(false);
       if (Match((TokenType.BooleanLiteral, "true"))) return new Expression.Literal(true);
       if (Match(TokenType.NullLiteral)) return new Expression.Literal(null);
+
       if (Match(
         TokenType.IntegerLiteral, TokenType.FloatingPointLiteral,
         TokenType.StringLiteral, TokenType.CharacterLiteral
       )) {
         return new Expression.Literal(Previous().Literal);
       }
+
+      if(Match(TokenType.Identifier)) {
+        return new Expression.Variable(Previous());
+      }
+
       if (Match(TokenType.LeftParenthesisPunctuation)) {
         Expression expression = ParseExpression();
         Consume(TokenType.RightParenthesisPunctuation, "Expect ')' after expression.");
         return new Expression.Parenthesized(expression);
       }
+      Console.WriteLine(Current());
       throw Error(Current(), "Expect expression.");
     }
 
@@ -153,8 +229,17 @@ namespace Metal.FrontEnd.Parse {
 
     private bool Match(params TokenType[] types) {
       foreach (var type in types) {
-        if (Check((type, null))) {
+        if (Check((type))) {
           Next();
+          return true;
+        }
+      }
+      return false;
+    }
+
+    private bool Check(params TokenType[] types) {
+      foreach (var type in types) {
+        if (Check((type, null))) {
           return true;
         }
       }
@@ -177,7 +262,7 @@ namespace Metal.FrontEnd.Parse {
     }
     private Token Consume(TokenType type, string message) {
       if (Check((type, null))) return Next();
-      throw Error(Current(), message);
+       throw Error(Current(), message);
     }
 
     private ParseError Error(Token token, string message) {

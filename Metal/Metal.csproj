@@ -40,7 +40,10 @@
   <ItemGroup>
     <Compile Include="Diagnostics\Runtime\RuntimeError.cs" />
     <Compile Include="FrontEnd\Interpret\Interpreter.cs" />
+    <Compile Include="FrontEnd\Parse\Grammar\AST.cs" />
     <Compile Include="FrontEnd\Parse\Grammar\Expression.cs" />
+    <Compile Include="FrontEnd\Parse\Grammar\Statement.cs" />
+    <Compile Include="Intermediate\Environment.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="IO\Source.cs">

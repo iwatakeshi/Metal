@@ -52,3 +52,31 @@ The final issue handled in the front end of a compiler is the generation of an i
 Compilers use a variety of different kinds of ir, depending on the source language, the target language, 
 and the specific trans- formations that the compiler applies. Some irs represent the program as a graph. 
 Others resemble a sequential assembly code program
+
+
+## Grammar
+
+```
+program					→ declaration* eof;
+
+declaration				→ var-declaration
+						| statement ;
+
+statement				→ expression-statement
+						| print-statement
+						| block;
+
+block					→ '{' declaration* '}' ;
+
+var-declaration			→ 'var' IDENTFIER ('=' expression)? ;
+
+primary					→ 'true' | 'false' | 'null' | 'this'
+						| NUMBER | STRING
+						| '(' expression ')'
+						| IDENTIFER
+
+expression				→ assignment ;
+
+assignment				→ IDENTIFIER '=' assignment
+						| equality
+```

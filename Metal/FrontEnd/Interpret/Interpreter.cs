@@ -2,10 +2,16 @@
 using Metal.FrontEnd.Parse.Grammar;
 using Metal.FrontEnd.Scan;
 using System;
+using System.Collections.Generic;
+using Metal.Intermediate;
 
 namespace Metal.FrontEnd.Interpret {
-  public class Interpreter : Expression.Visitor<Object> {
-    public object VisitBinary(Expression.Binary expression) {
+  class Interpreter : Expression.IVisitor<object>, Statement.IVisitor<object> {
+
+    private MetalEnvironment environment = new MetalEnvironment();
+
+
+    public object Visit(Expression.Binary expression) {
       object left = Evaluate(expression.Left);
       object right = Evaluate(expression.Right);
 
@@ -39,7 +45,7 @@ namespace Metal.FrontEnd.Interpret {
       // '*' operator
       if (expression.Operator.IsOperator("*")) {
 
-        if(left is int && right is int) {
+        if (left is int && right is int) {
           return ApplyIntOperatorToOperand(ConvertObjectToInt(left, right), "*");
         }
 
@@ -77,31 +83,64 @@ namespace Metal.FrontEnd.Interpret {
       }
 
       // Check equality
-      if (expression.Operator.IsOperator("!=")) return !isEqual(left, right);
-      if (expression.Operator.IsOperator("==")) return isEqual(left, right);
+      if (expression.Operator.IsOperator("!=")) return !IsEqual(left, right);
+      if (expression.Operator.IsOperator("==")) return IsEqual(left, right);
 
       return null;
     }
+    public object Visit(Statement.Expr statement) {
+      Evaluate(statement.Expression);
+      return null;
+    }
+    public object Visit(Statement.Print statement) {
+      Object value = Evaluate(statement.Expression);
+      Console.WriteLine(value.ToString());
+      return null;
+    }
 
-    public object VisitLiteral(Expression.Literal expression) {
+    public object Visit(Statement.Block statement) {
+      ExecuteBlock(statement.Statements, new MetalEnvironment(environment));
+      return null;
+    }
+
+    public object Visit(Statement.Var statement) {
+      object value = null;
+      if (statement.Initializer != null) {
+        value = Evaluate(statement.Initializer);
+      }
+      environment.Define(statement.Name.Lexeme, value);
+      return null;
+    }
+
+    public object Visit(Expression.Assign expression) {
+      object value = Evaluate(expression.Value);
+      environment.Assign(expression.Name, value);
+      return value;
+    }
+
+    public object Visit(Expression.Literal expression) {
       return expression.Value;
     }
 
-    public object VisitParenthesized(Expression.Parenthesized expression) {
+    public object Visit(Expression.Parenthesized expression) {
       return Evaluate(expression.Center);
     }
 
-    public object VisitUnary(Expression.Unary expression) {
+    public object Visit(Expression.Unary expression) {
       object right = Evaluate(expression.Right);
-      if(expression.Operator.IsOperator("-")) {
+      if (expression.Operator.IsOperator("-")) {
         CheckNumberOperand(expression.Operator, right);
         if (right is double) return -(double)right;
         else return -(int)right;
       }
-      if(expression.Operator.IsOperator("!")) {
-        return !isTrue(right);
+      if (expression.Operator.IsOperator("!")) {
+        return !IsTrue(right);
       }
       return null;
+    }
+
+    public object Visit(Expression.Variable expression) {
+      return environment.Get(expression.Name);
     }
 
     private (int, int) ConvertObjectToInt(object left, object right) {
@@ -164,13 +203,13 @@ namespace Metal.FrontEnd.Interpret {
       throw new RuntimeError(@operator, "Operands must be numbers.");
     }
 
-    private bool isTrue(object @object) {
+    private bool IsTrue(object @object) {
       if (@object == null) return false;
       if (@object is Boolean) return (bool)@object;
       return true;
     }
 
-    private bool isEqual(object a, object b) {
+    private bool IsEqual(object a, object b) {
       if (a == null && b == null) return true;
       if (a == null) return false;
       return a.Equals(b);
@@ -179,14 +218,33 @@ namespace Metal.FrontEnd.Interpret {
     private object Evaluate(Expression expression) {
       return expression.Accept(this);
     }
-    
-    public void Interpret(Expression expression) {
+
+    internal void Interpret(List<Statement> statements) {
       try {
-        object value = Evaluate(expression);
-        Console.WriteLine(value == null ? "null" : value.ToString());
-      } catch(RuntimeError error) {
+        foreach (var statement in statements) {
+          Execute(statement);
+        }
+      } catch (RuntimeError error) {
         Metal.RuntimeError(error);
       }
     }
+
+    private void Execute(Statement statement) {
+      statement.Accept(this);
+    }
+
+    private void ExecuteBlock(List<Statement> statements, MetalEnvironment environment) {
+      MetalEnvironment previous = this.environment;
+      try {
+        this.environment = environment;
+        foreach (var statement in statements) {
+          Execute(statement);
+        }
+      } finally {
+        this.environment = previous;
+      }
+    }
+
+
   }
 }

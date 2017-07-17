@@ -3,25 +3,33 @@ using System.Text;
 using Metal.FrontEnd.Parse.Grammar;
 
 namespace Metal {
-  public class ASTPrinter : Expression.Visitor<string> {
+  class ASTPrinter : Expression.IVisitor<string> {
     public string Print(Expression expression) {
       return expression.Accept(this);
     }
 
-    public string VisitLiteral(Expression.Literal expression) {
+    public string Visit(Expression.Literal expression) {
       return expression.Value.ToString();
     }
 
-    public string VisitUnary(Expression.Unary expression) {
+    public string Visit(Expression.Unary expression) {
       return Parenthesize(expression.Operator.Lexeme, expression.Right);
     }
 
-    public string VisitBinary(Expression.Binary expression) {
+    public string Visit(Expression.Binary expression) {
       return Parenthesize(expression.Operator.Lexeme, expression.Left, expression.Right);
     }
 
-    public string VisitParenthesized(Expression.Parenthesized expression) {
+    public string Visit(Expression.Parenthesized expression) {
       return Parenthesize("parenthesized", expression.Center);
+    }
+
+    public string Visit(Expression.Assign expression) {
+      throw new NotImplementedException();
+    }
+
+    public string Visit(Expression.Variable expression) {
+      throw new NotImplementedException();
     }
 
     private String Parenthesize(String name, params Expression[] expressions) {

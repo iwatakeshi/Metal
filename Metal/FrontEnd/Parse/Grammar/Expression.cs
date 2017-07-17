@@ -6,82 +6,121 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Metal.FrontEnd.Parse.Grammar {
-  public abstract class Expression {
+  abstract class Expression : AST<Expression> {
 
-    public interface Visitor<T> {
-      T VisitLiteral(Literal expression);
-      T VisitUnary(Unary expression);
-      T VisitBinary(Binary expression);
-      T VisitParenthesized(Parenthesized expression);
+    internal interface IVisitor<T> {
+      T Visit(Assign expression);
+      T Visit(Literal expression);
+      T Visit(Unary expression);
+      T Visit(Binary expression);
+      T Visit(Parenthesized expression);
+      T Visit(Variable expression);
     }
-    public abstract T Accept<T>(Visitor<T> visitor);
-    public abstract Expression Right { get; }
-    public abstract Expression Left { get; }
-    public abstract Token Operator { get; }
-    public class Unary : Expression {
+    internal abstract T Accept<T>(IVisitor<T> visitor);
+
+    internal class Assign : Expression {
+      private Token name;
+      private Expression value;
+
+      internal override Expression Left => null;
+      internal override Expression Right => null;
+
+      internal override Token Operator => null;
+      internal Token Name => name;
+      internal Expression Value => value;
+
+      internal Assign(Token name, Expression value) {
+        this.name = name;
+        this.value = value;
+      }
+
+      internal override T Accept<T>(IVisitor<T> visitor) {
+        return visitor.Visit(this);
+      }
+    }
+
+    internal class Unary : Expression {
       Token @operator;
       Expression right;
-      public Unary(Token @operator, Expression right) {
+      internal Unary(Token @operator, Expression right) {
         this.@operator = @operator;
         this.right = right;
       }
-      public override T Accept<T>(Visitor<T> visitor) {
-        return visitor.VisitUnary(this);
+
+      internal override T Accept<T>(IVisitor<T> visitor) {
+        return visitor.Visit(this);
       }
-      public override Expression Left { get { return null; } }
-      public override Expression Right { get { return right; } }
-      public override Token Operator { get { return @operator; } }
+
+      internal override Expression Left => null;
+      internal override Expression Right => right;
+      internal override Token Operator => @operator;
     }
 
 
-    public class Binary : Expression {
+    internal class Binary : Expression {
       private Expression left;
       private Token @operator;
       private Expression right;
-      public Binary(Expression left, Token @operator, Expression right) {
+      internal Binary(Expression left, Token @operator, Expression right) {
         this.left = left;
         this.@operator = @operator;
         this.right = right;
       }
 
-      public override T Accept<T>(Visitor<T> visitor) {
-        return visitor.VisitBinary(this);
+      internal override T Accept<T>(IVisitor<T> visitor) {
+        return visitor.Visit(this);
       }
 
-      public override Expression Left { get { return left; } }
-      public override Expression Right { get { return right; } }
-      public override Token Operator { get { return @operator; } }
+      internal override Expression Left => null;
+      internal override Expression Right => right;
+      internal override Token Operator => @operator;
     }
-    public class Parenthesized : Expression {
+    internal class Parenthesized : Expression {
       private Expression expression;
-      public Parenthesized(Expression expression) {
+      internal Parenthesized(Expression expression) {
         this.expression = expression;
       }
-      public override T Accept<T>(Visitor<T> visitor) {
-        return visitor.VisitParenthesized(this);
+      internal override T Accept<T>(IVisitor<T> visitor) {
+        return visitor.Visit(this);
       }
-      
-      public override Expression Left { get { return null; } }
-      public Expression Center { get { return expression; } }
-      public override Expression Right { get { return null; } }
-      public override Token Operator { get { return null; } }
+
+      internal override Expression Left => null;
+      internal Expression Center => expression;
+      internal override Expression Right => null;
+      internal override Token Operator => null;
     }
 
-    public class Literal : Expression {
+    internal class Literal : Expression {
       private object value;
-      public Literal(object value) {
+      internal Literal(object value) {
         this.value = value;
       }
 
-      public override T Accept<T>(Visitor<T> visitor) {
-        return visitor.VisitLiteral(this);
+      internal override T Accept<T>(IVisitor<T> visitor) {
+        return visitor.Visit(this);
       }
-      public override Expression Left { get { return null; } }
-      public override Expression Right { get { return null; } }
-      public override Token Operator { get { return null; } }
+      internal override Expression Left => null;
+      internal override Expression Right => null;
+      internal override Token Operator => null;
 
-      public object Value { get { return value; } }
+      internal object Value => value;
+    }
 
+    internal class Variable : Expression {
+      private Token name;
+      internal Token Name => name;
+      internal Variable(Token name) {
+        this.name = name;
+      }
+      internal override Expression Left => null;
+
+      internal override Expression Right => null;
+
+      internal override Token Operator => null;
+
+      internal override T Accept<T>(IVisitor<T> visitor) {
+        return visitor.Visit(this);
+      }
     }
   }
 }

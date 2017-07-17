@@ -12,6 +12,6 @@ namespace Metal.Diagnostics.Runtime {
       this.token = token;
     }
 
-    public Token Token { get { return token;  } }
+    public Token Token => token;
   }
 }
