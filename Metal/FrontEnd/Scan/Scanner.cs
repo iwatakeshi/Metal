@@ -74,8 +74,18 @@ namespace Metal.FrontEnd.Scan {
         case '*': return AddToken(TokenType.Operator, ch);
         case '/':
           // Multi-line Comment
-          if (Match('*')) {
-            while (!Match('*') && !Match('/')) { Next(); }
+          if (Current() == '*') {
+            Next();
+            while(!IsAtEnd) {
+              if (Current() == '*' && Peek() == '/') break;
+              Next();
+            }
+            if (Current() == '*' && Peek() == '/') {
+              Next();
+              Next();
+              break;
+            }
+            Metal.Error(source.Line, "Unterminated block comment.");
             break;
           } else { return AddToken(TokenType.Operator, ch); }
         case '!': return AddToken(TokenType.Operator, Match('=') ? "!=" : "!");

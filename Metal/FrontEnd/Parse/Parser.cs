@@ -66,6 +66,14 @@ namespace Metal.FrontEnd.Parse {
     }
 
     private Statement ParseStatement() {
+
+      // Parse for statement
+      if (Match((TokenType.Reserved, "for"))) return ParseForStatement();
+
+      // Parse if statement
+      if (Match((TokenType.Reserved, "if"))) return ParseIfStatement();
+
+      // Parse print statement
       if (Match((TokenType.Reserved, "print"))) {
         Consume(TokenType.LeftParenthesisPunctuation, "Expect '(' after print.");
         var print = ParsePrintStatement();
@@ -73,9 +81,16 @@ namespace Metal.FrontEnd.Parse {
         Consume(TokenType.SemiColonPunctuation, "Expect ';' after expression.");
         return print;
       }
+
+      // Parse while statement
+      if (Match((TokenType.Reserved, "while"))) return ParseWhileStatement();
+
+      // Parse block statement
       if (Match(TokenType.LeftBracePunctuation)) {
         return new Statement.Block(ParseBlockStatement());
       }
+
+      // Parse expression statement
       return ParseExpressionStatement();
     }
     private Statement ParseExpressionStatement() {
@@ -100,7 +115,7 @@ namespace Metal.FrontEnd.Parse {
     private Statement ParseDeclaration() {
       try {
         if (Match((TokenType.Reserved, "var"))) return ParseVarDeclaration();
-        return ParseStatement();
+        else return ParseStatement();
       } catch(ParseError error) {
         Synchronize();
         return null;
@@ -118,20 +133,104 @@ namespace Metal.FrontEnd.Parse {
       return new Statement.Var(name, initializer);
     }
 
+    private Statement ParseForStatement() {
+      Consume(TokenType.LeftParenthesisPunctuation, "Expect '(' after 'for'.");
+      Statement initializer;
+      if (Match(TokenType.SemiColonPunctuation)) {
+        initializer = null;
+      } else if (Match((TokenType.Reserved, "var"))) {
+        initializer = ParseVarDeclaration();
+      } else {
+        initializer = ParseExpressionStatement();
+      }
+      Expression condition = null;
+      if(!Check(TokenType.SemiColonPunctuation)) {
+        condition = ParseExpression();
+      }
+      Consume(TokenType.SemiColonPunctuation, "Expect ';' after loop condition.");
+
+      Expression increment = null;
+      if (!Check(TokenType.RightParenthesisPunctuation)) {
+        increment = ParseExpression();
+      }
+      Consume(TokenType.RightParenthesisPunctuation, "Expect ')' after for clauses.");
+
+      Statement body = ParseStatement();
+
+      if(increment != null) {
+        body = new Statement.Block(new List<Statement> {
+          body,
+          new Statement.Expr(increment)
+        });
+      }
+
+      if (condition == null) condition = new Expression.Literal(true);
+      body = new Statement.While(condition, body);
+
+      if(initializer != null) {
+        body = new Statement.Block(new List<Statement> {
+          initializer,
+          body
+        });
+      }
+
+      return body;
+    }
+
+    private Statement ParseIfStatement() {
+      Consume(TokenType.LeftParenthesisPunctuation, "Expect '(' after 'if'.");
+      Expression condition = ParseExpression();
+      Consume(TokenType.RightParenthesisPunctuation, "Expect ')' after 'if'.");
+      Statement thenBranch = ParseStatement();
+      Statement elseBranch = null;
+      if(Match((TokenType.Reserved, "else"))) {
+        elseBranch = ParseStatement();
+      }
+      return new Statement.If(condition, thenBranch, elseBranch);
+    }
+
+    private Statement ParseWhileStatement() {
+      Consume(TokenType.LeftParenthesisPunctuation, "Expect '(' after 'while'.");
+      Expression condition = ParseExpression();
+      Consume(TokenType.RightParenthesisPunctuation, "Expect ')' after condition.");
+      Statement body = ParseStatement();
+      return new Statement.While(condition, body);
+    }
+
     private Expression ParseExpression() {
       return ParseAssignment();
     }
 
     private Expression ParseAssignment() {
-      Expression expression = ParseEquality();
+      Expression expression = ParseOr();
       if (Match((TokenType.Operator, "="))) {
         Token equals = Previous();
         Expression value = ParseAssignment();
-        if (expression.GetType() == typeof(Expression.Variable)) {
+        if (expression is Expression.Variable) {
           Token name = ((Expression.Variable)expression).Name;
           return new Expression.Assign(name, value);
         }
         throw Error(equals, "Invalid assignment target.");
+      }
+      return expression;
+    }
+
+    private Expression ParseOr() {
+      Expression expression = ParseAnd();
+      while (Match((TokenType.Operator, "or"))) {
+        Token @operator = Previous();
+        Expression right = ParseAnd();
+        expression = new Expression.Logical(expression, @operator, right);
+      }
+      return expression;
+    }
+
+    private Expression ParseAnd() {
+      Expression expression = ParseEquality();
+      while (Match((TokenType.Operator, "and"))) {
+        Token @operator = Previous();
+        Expression right = ParseEquality();
+        expression = new Expression.Logical(expression, @operator, right);
       }
       return expression;
     }

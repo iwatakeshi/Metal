@@ -15,6 +15,7 @@ namespace Metal.FrontEnd.Parse.Grammar {
       T Visit(Binary expression);
       T Visit(Parenthesized expression);
       T Visit(Variable expression);
+      T Visit(Logical expression);
     }
     internal abstract T Accept<T>(IVisitor<T> visitor);
 
@@ -71,7 +72,7 @@ namespace Metal.FrontEnd.Parse.Grammar {
         return visitor.Visit(this);
       }
 
-      internal override Expression Left => null;
+      internal override Expression Left => left;
       internal override Expression Right => right;
       internal override Token Operator => @operator;
     }
@@ -117,6 +118,28 @@ namespace Metal.FrontEnd.Parse.Grammar {
       internal override Expression Right => null;
 
       internal override Token Operator => null;
+
+      internal override T Accept<T>(IVisitor<T> visitor) {
+        return visitor.Visit(this);
+      }
+    }
+
+    internal class Logical : Expression {
+      private Expression left;
+      private Expression right;
+      private Token @operator;
+
+      internal override Expression Left => left;
+
+      internal override Expression Right => right;
+
+      internal override Token Operator => @operator;
+
+      internal Logical(Expression left, Token @operator, Expression right) {
+        this.left = left;
+        this.@operator = @operator;
+        this.right = right;
+      }
 
       internal override T Accept<T>(IVisitor<T> visitor) {
         return visitor.Visit(this);

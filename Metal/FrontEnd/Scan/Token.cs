@@ -121,7 +121,7 @@ namespace Metal.FrontEnd.Scan {
         case "var":
         case "private":
         case "public":
-        /* Reserved words used in statements */
+        /* Reserved words used in statements for control-flow and loops */
         case "break":
         case "case":
         case "continue":
@@ -155,6 +155,10 @@ namespace Metal.FrontEnd.Scan {
         /* Reserved words in particular contexts */
         case "get":
         case "set":
+        /* Reserved words in operators */
+        case "and":
+        case "or":
+        case "xor":
           return true;
         default:
           return false;
@@ -170,12 +174,12 @@ namespace Metal.FrontEnd.Scan {
     }
 
     public static bool IsLiteralString(string key) {
-      switch(key) {
+      switch (key) {
         case "null":
         case "true":
         case "false":
           return true;
-        default: 
+        default:
           return false;
       }
     }
@@ -301,10 +305,10 @@ namespace Metal.FrontEnd.Scan {
 
         /* Logical Operator */
         // AND
-        case "&&":
-        // OR
-        case "||":
-        // NOT 
+        case "and":
+        //// OR
+        case "or":
+        //// NOT 
         case "!":
 
         /* Lambda Operator */
@@ -315,17 +319,17 @@ namespace Metal.FrontEnd.Scan {
 
         /* Bitwise Operators */
         // NOT
-        case "~":
-        // AND
-        case "&":
-        // OR
-        case "|":
-        // XOR 
-        case "^":
-        // Left Shift
-        case "<<":
-        // Right Shift
-        case ">>":
+        //case "~":
+        //// AND
+        //case "&":
+        //// OR
+        //case "|":
+        //// XOR 
+        //case "^":
+        //// Left Shift
+        //case "<<":
+        //// Right Shift
+        //case ">>":
         /* Spread Operator */
         case "...":
         /* As Operator */

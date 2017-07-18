@@ -63,12 +63,23 @@ declaration				→ var-declaration
 						| statement ;
 
 statement				→ expression-statement
+						| for-statement
+						| if-statement
 						| print-statement
+						| while-statement
 						| block;
+
+
+for-statement			→ 'for' '(' ( var-declaration | expr-statement | ';') expression? ';' expression ';' ')' statement ';' ;
+if-statement			→ 'if' '(' expression ')' statement ( 'else' statement )? ;
+
+while-statement			→ 'while' '(' expression ')' statement ;
+
+var-declaration			→ 'var' IDENTFIER ( '=' expression )? ;
 
 block					→ '{' declaration* '}' ;
 
-var-declaration			→ 'var' IDENTFIER ('=' expression)? ;
+print-statement			→ 'print' '(' expression ')' ';' ;
 
 primary					→ 'true' | 'false' | 'null' | 'this'
 						| NUMBER | STRING
@@ -78,5 +89,12 @@ primary					→ 'true' | 'false' | 'null' | 'this'
 expression				→ assignment ;
 
 assignment				→ IDENTIFIER '=' assignment
-						| equality
+						| logical-or
+
+logical-or				| logical-and ( '||' logical-and )* ;
+
+logical-and				| equality
+
+
+
 ```

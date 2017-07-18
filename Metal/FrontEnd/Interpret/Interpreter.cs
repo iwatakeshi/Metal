@@ -14,7 +14,6 @@ namespace Metal.FrontEnd.Interpret {
     public object Visit(Expression.Binary expression) {
       object left = Evaluate(expression.Left);
       object right = Evaluate(expression.Right);
-
       // '+' operator
       if (expression.Operator.IsOperator("+")) {
 
@@ -88,13 +87,15 @@ namespace Metal.FrontEnd.Interpret {
 
       return null;
     }
+
+    /* Visit Statements */
     public object Visit(Statement.Expr statement) {
       Evaluate(statement.Expression);
       return null;
     }
     public object Visit(Statement.Print statement) {
       Object value = Evaluate(statement.Expression);
-      Console.WriteLine(value.ToString());
+      Console.WriteLine(value == null ? "null" : value);
       return null;
     }
 
@@ -104,6 +105,7 @@ namespace Metal.FrontEnd.Interpret {
     }
 
     public object Visit(Statement.Var statement) {
+      
       object value = null;
       if (statement.Initializer != null) {
         value = Evaluate(statement.Initializer);
@@ -112,10 +114,37 @@ namespace Metal.FrontEnd.Interpret {
       return null;
     }
 
+    public object Visit(Statement.If statement) {
+      if(IsTrue(statement.Condition)) {
+        Execute(statement.ThenBranch);
+      } else if (statement.ElseBranch != null) {
+        Execute(statement.ElseBranch);
+      }
+      return null;
+    }
+
+    public object Visit(Statement.While statement) {
+      while(IsTrue(Evaluate(statement.Condition))) {
+        Execute(statement.Body);
+      }
+      return null;
+    }
+
+    /* Visit Expressions */
     public object Visit(Expression.Assign expression) {
       object value = Evaluate(expression.Value);
       environment.Assign(expression.Name, value);
       return value;
+    }
+
+    public object Visit(Expression.Logical expression) {
+      object left = Evaluate(expression.Left);
+      if (expression.Operator.IsOperator("or")) {
+        if (IsTrue(left)) return left;
+      } else {
+        if (!IsTrue(left)) return left;
+      }
+      return Evaluate(expression.Right);
     }
 
     public object Visit(Expression.Literal expression) {

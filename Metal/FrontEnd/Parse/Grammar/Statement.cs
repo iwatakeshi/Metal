@@ -1,5 +1,6 @@
 ﻿using Metal.FrontEnd.Scan;
 using System.Collections.Generic;
+using System;
 
 namespace Metal.FrontEnd.Parse.Grammar {
   abstract class Statement {
@@ -8,6 +9,8 @@ namespace Metal.FrontEnd.Parse.Grammar {
       T Visit(Expr statement);
       T Visit(Print statement);
       T Visit(Var statement);
+      T Visit(If statement);
+      T Visit(While statement);
     }
     internal abstract T Accept<T>(IVisitor<T> visitor);
 
@@ -54,6 +57,41 @@ namespace Metal.FrontEnd.Parse.Grammar {
         this.name = name;
         this.initializer = initializer;
       }
+      internal override T Accept<T>(IVisitor<T> visitor) {
+        return visitor.Visit(this);
+      }
+    }
+
+    internal class If : Statement {
+      private Expression condition;
+      private Statement thenBranch;
+      private Statement elseBranch;
+      internal Expression Condition => condition;
+      internal Statement ThenBranch => thenBranch;
+      internal Statement ElseBranch => elseBranch;
+
+      internal If (Expression condition, Statement thenBranch, Statement elseBranch) {
+        this.condition = condition;
+        this.thenBranch = thenBranch;
+        this.elseBranch = elseBranch;
+      }
+      internal override T Accept<T>(IVisitor<T> visitor) {
+        return visitor.Visit(this);
+      }
+    }
+
+    internal class While : Statement {
+      private Expression condition;
+      private Statement body;
+
+      internal Expression Condition => condition;
+      internal Statement Body => body;
+
+      internal While(Expression condition, Statement body) {
+        this.condition = condition;
+        this.body = body;
+      }
+
       internal override T Accept<T>(IVisitor<T> visitor) {
         return visitor.Visit(this);
       }

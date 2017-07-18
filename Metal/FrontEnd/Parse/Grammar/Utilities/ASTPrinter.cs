@@ -32,6 +32,10 @@ namespace Metal {
       throw new NotImplementedException();
     }
 
+    public string Visit(Expression.Logical expression) {
+      throw new NotImplementedException();
+    }
+
     private String Parenthesize(String name, params Expression[] expressions) {
       StringBuilder builder = new System.Text.StringBuilder();
 
