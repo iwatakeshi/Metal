@@ -105,7 +105,7 @@ namespace Metal.FrontEnd.Parse {
 
     private List<Statement> ParseBlockStatement() {
       List<Statement> statements = new List<Statement>();
-      while(!Check(TokenType.RightBracePunctuation) && !IsAtEnd) {
+      while (!Check(TokenType.RightBracePunctuation) && !IsAtEnd) {
         statements.Add(ParseDeclaration());
       }
       Consume(TokenType.RightBracePunctuation, "Expect '}' after block.");
@@ -116,10 +116,11 @@ namespace Metal.FrontEnd.Parse {
       try {
         if (Match((TokenType.Reserved, "var"))) return ParseVarDeclaration();
         else return ParseStatement();
-      } catch(ParseError error) {
+      } catch (ParseError) {
         Synchronize();
         return null;
       }
+
     }
 
     private Statement ParseVarDeclaration() {
@@ -144,7 +145,7 @@ namespace Metal.FrontEnd.Parse {
         initializer = ParseExpressionStatement();
       }
       Expression condition = null;
-      if(!Check(TokenType.SemiColonPunctuation)) {
+      if (!Check(TokenType.SemiColonPunctuation)) {
         condition = ParseExpression();
       }
       Consume(TokenType.SemiColonPunctuation, "Expect ';' after loop condition.");
@@ -157,7 +158,7 @@ namespace Metal.FrontEnd.Parse {
 
       Statement body = ParseStatement();
 
-      if(increment != null) {
+      if (increment != null) {
         body = new Statement.Block(new List<Statement> {
           body,
           new Statement.Expr(increment)
@@ -167,7 +168,7 @@ namespace Metal.FrontEnd.Parse {
       if (condition == null) condition = new Expression.Literal(true);
       body = new Statement.While(condition, body);
 
-      if(initializer != null) {
+      if (initializer != null) {
         body = new Statement.Block(new List<Statement> {
           initializer,
           body
@@ -183,7 +184,7 @@ namespace Metal.FrontEnd.Parse {
       Consume(TokenType.RightParenthesisPunctuation, "Expect ')' after 'if'.");
       Statement thenBranch = ParseStatement();
       Statement elseBranch = null;
-      if(Match((TokenType.Reserved, "else"))) {
+      if (Match((TokenType.Reserved, "else"))) {
         elseBranch = ParseStatement();
       }
       return new Statement.If(condition, thenBranch, elseBranch);
@@ -303,7 +304,7 @@ namespace Metal.FrontEnd.Parse {
         return new Expression.Literal(Previous().Literal);
       }
 
-      if(Match(TokenType.Identifier)) {
+      if (Match(TokenType.Identifier)) {
         return new Expression.Variable(Previous());
       }
 
@@ -361,7 +362,7 @@ namespace Metal.FrontEnd.Parse {
     }
     private Token Consume(TokenType type, string message) {
       if (Check((type, null))) return Next();
-       throw Error(Current(), message);
+      throw Error(Current(), message);
     }
 
     private ParseError Error(Token token, string message) {

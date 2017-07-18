@@ -18,7 +18,7 @@ namespace Metal {
       if (args.Length > 1) {
         Console.WriteLine("Usage: metal [file]");
       } else if (args.Length == 1) {
-          RunFile(args[0]);
+        RunFile(args[0]);
       } else {
         RunPrompt();
       }
@@ -33,12 +33,10 @@ namespace Metal {
           Parser parser = new Parser(tokens);
           var statements = parser.Parse();
           interpreter.Interpret(statements);
-        } catch (Exception error) {
+        } catch (Exception) {
+          Console.Write("");
         }
       } else Console.WriteLine("An error occurred.");
-      // foreach (var token in tokens) {
-      //   Console.WriteLine(token);
-      // }
     }
 
     private static void RunFile(string source) {
