@@ -115,7 +115,7 @@ namespace Metal.FrontEnd.Interpret {
     }
 
     public object Visit(Statement.If statement) {
-      if(IsTrue(statement.Condition)) {
+      if(IsTruthy(statement.Condition)) {
         Execute(statement.ThenBranch);
       } else if (statement.ElseBranch != null) {
         Execute(statement.ElseBranch);
@@ -124,7 +124,7 @@ namespace Metal.FrontEnd.Interpret {
     }
 
     public object Visit(Statement.While statement) {
-      while(IsTrue(Evaluate(statement.Condition))) {
+      while(IsTruthy(Evaluate(statement.Condition))) {
         Execute(statement.Body);
       }
       return null;
@@ -140,9 +140,9 @@ namespace Metal.FrontEnd.Interpret {
     public object Visit(Expression.Logical expression) {
       object left = Evaluate(expression.Left);
       if (expression.Operator.IsOperator("or")) {
-        if (IsTrue(left)) return left;
+        if (IsTruthy(left)) return left;
       } else {
-        if (!IsTrue(left)) return left;
+        if (!IsTruthy(left)) return left;
       }
       return Evaluate(expression.Right);
     }
@@ -163,7 +163,7 @@ namespace Metal.FrontEnd.Interpret {
         else return -(int)right;
       }
       if (expression.Operator.IsOperator("!")) {
-        return !IsTrue(right);
+        return !IsTruthy(right);
       }
       return null;
     }
@@ -232,7 +232,7 @@ namespace Metal.FrontEnd.Interpret {
       throw new RuntimeError(@operator, "Operands must be numbers.");
     }
 
-    private bool IsTrue(object @object) {
+    private bool IsTruthy(object @object) {
       if (@object == null) return false;
       if (@object is Boolean) return (bool)@object;
       return true;
