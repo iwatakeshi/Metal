@@ -135,47 +135,22 @@ namespace Metal.FrontEnd.Parse {
     }
 
     private Statement ParseForStatement() {
-      Consume(TokenType.LeftParenthesisPunctuation, "Expect '(' after 'for'.");
-      Statement initializer;
-      if (Match(TokenType.SemiColonPunctuation)) {
-        initializer = null;
-      } else if (Match((TokenType.Reserved, "var"))) {
-        initializer = ParseVarDeclaration();
-      } else {
-        initializer = ParseExpressionStatement();
+      bool forParenthesisEnabled = false;
+      if (Check(TokenType.LeftParenthesisPunctuation)) {
+        forParenthesisEnabled = true;
+        Next();
       }
-      Expression condition = null;
-      if (!Check(TokenType.SemiColonPunctuation)) {
-        condition = ParseExpression();
+      var rhs = forParenthesisEnabled ? "'('" : "'for'";
+      Consume((TokenType.Reserved, "var"), "Expect 'var' after " + rhs + ".");
+      Token name = Consume(TokenType.Identifier, "Expect variable name.");
+      Consume((TokenType.Operator, "in"), "Expect 'in' after variable name.");
+      Expression range = ParseExpression();
+      if (forParenthesisEnabled) {
+        Consume(TokenType.RightParenthesisPunctuation, "Expect ')' after for clauses.");
       }
-      Consume(TokenType.SemiColonPunctuation, "Expect ';' after loop condition.");
-
-      Expression increment = null;
-      if (!Check(TokenType.RightParenthesisPunctuation)) {
-        increment = ParseExpression();
-      }
-      Consume(TokenType.RightParenthesisPunctuation, "Expect ')' after for clauses.");
-
+        
       Statement body = ParseStatement();
-
-      if (increment != null) {
-        body = new Statement.Block(new List<Statement> {
-          body,
-          new Statement.Expr(increment)
-        });
-      }
-
-      if (condition == null) condition = new Expression.Literal(true);
-      body = new Statement.While(condition, body);
-
-      if (initializer != null) {
-        body = new Statement.Block(new List<Statement> {
-          initializer,
-          body
-        });
-      }
-
-      return body;
+      return new Statement.For(name, range, body);
     }
 
     private Statement ParseIfStatement() {
@@ -262,7 +237,8 @@ namespace Metal.FrontEnd.Parse {
     private Expression ParseTerm() {
       Expression expression = ParseFactor();
       while (Match(
-        (TokenType.Operator, "+"), (TokenType.Operator, "-")
+        (TokenType.Operator, "+"), (TokenType.Operator, "-"),
+        (TokenType.Operator, "..")
       )) {
         Token @operator = Previous();
         Expression right = ParseFactor();
@@ -284,7 +260,9 @@ namespace Metal.FrontEnd.Parse {
     }
 
     private Expression ParseUnary() {
-      if (Match((TokenType.Operator, "!"), (TokenType.Operator, "-"))) {
+      if (Match(
+        (TokenType.Operator, "!"), (TokenType.Operator, "-"),
+        (TokenType.Operator, ".."))) {
         Token @operator = Previous();
         Expression right = ParseUnary();
         return new Expression.Unary(@operator, right);

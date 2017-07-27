@@ -107,6 +107,7 @@ namespace Metal.FrontEnd.Parse.Grammar {
       internal object Value => value;
     }
 
+
     internal class Variable : Expression {
       private Token name;
       internal Token Name => name;

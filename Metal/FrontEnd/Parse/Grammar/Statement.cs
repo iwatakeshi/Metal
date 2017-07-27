@@ -10,6 +10,7 @@ namespace Metal.FrontEnd.Parse.Grammar {
       T Visit(Print statement);
       T Visit(Var statement);
       T Visit(If statement);
+      T Visit(For statement);
       T Visit(While statement);
     }
     internal abstract T Accept<T>(IVisitor<T> visitor);
@@ -70,11 +71,32 @@ namespace Metal.FrontEnd.Parse.Grammar {
       internal Statement ThenBranch => thenBranch;
       internal Statement ElseBranch => elseBranch;
 
-      internal If (Expression condition, Statement thenBranch, Statement elseBranch) {
+      internal If(Expression condition, Statement thenBranch, Statement elseBranch) {
         this.condition = condition;
         this.thenBranch = thenBranch;
         this.elseBranch = elseBranch;
       }
+      internal override T Accept<T>(IVisitor<T> visitor) {
+        return visitor.Visit(this);
+      }
+    }
+
+    internal class For : Statement {
+      private Token name;
+      private Expression range;
+      private Statement body;
+
+      internal Token Name => name;
+      internal Expression Range => range;
+      internal Statement Body => body;
+
+
+      internal For(Token name, Expression range, Statement body) {
+        this.name = name;
+        this.range = range;
+        this.body = body;
+      }
+
       internal override T Accept<T>(IVisitor<T> visitor) {
         return visitor.Visit(this);
       }
@@ -96,8 +118,7 @@ namespace Metal.FrontEnd.Parse.Grammar {
         return visitor.Visit(this);
       }
     }
+
+    
   }
-  
-
-
 }
