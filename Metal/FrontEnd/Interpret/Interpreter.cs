@@ -4,6 +4,8 @@ using Metal.FrontEnd.Scan;
 using System;
 using System.Collections.Generic;
 using Metal.Intermediate;
+using System.Linq;
+using System.Collections;
 
 namespace Metal.FrontEnd.Interpret {
   class Interpreter : Expression.IVisitor<object>, Statement.IVisitor<object> {
@@ -85,7 +87,16 @@ namespace Metal.FrontEnd.Interpret {
       if (expression.Operator.IsOperator("!=")) return !IsEqual(left, right);
       if (expression.Operator.IsOperator("==")) return IsEqual(left, right);
 
+      if (expression.Operator.IsOperator("..")) {
+        CheckNumberOperand(expression.Operator, left, right);
+        return ApplyRangeOperator(ConvertObjectToInt(left, right));
+      }
+
       return null;
+    }
+
+    private object ApplyRangeOperator((int, int) operands) {
+      return Enumerable.Range(operands.Item1, operands.Item2);
     }
 
     /* Visit Statements */
@@ -125,6 +136,15 @@ namespace Metal.FrontEnd.Interpret {
 
     public object Visit(Statement.While statement) {
       while(IsTruthy(Evaluate(statement.Condition))) {
+        Execute(statement.Body);
+      }
+      return null;
+    }
+
+    public object Visit(Statement.For statement) {
+      environment.Define(statement.Name.Lexeme, null);
+      foreach (var value in (IEnumerable)Evaluate(statement.Range)) {
+        environment.Assign(statement.Name, value);
         Execute(statement.Body);
       }
       return null;

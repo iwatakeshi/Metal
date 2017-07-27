@@ -67,7 +67,7 @@ namespace Metal.FrontEnd.Scan {
         case ',': return AddToken(TokenType.CommaPunctuation, ch);
         case ';': return AddToken(TokenType.SemiColonPunctuation, ch);
         /* Operators */
-        case '.':
+        case '.': return AddToken(TokenType.Operator, Match('.') ? ".." : ".");
         case '?':
         case '+':
         case '-':

@@ -330,12 +330,16 @@ namespace Metal.FrontEnd.Scan {
         //case "<<":
         //// Right Shift
         //case ">>":
+        /* Range Operator */
+        case "..":
         /* Spread Operator */
         case "...":
         /* As Operator */
         case "as":
         /* Is Operator */
         case "is":
+        /* In Operator */
+        case "in":
           return true;
         default:
           return false;
