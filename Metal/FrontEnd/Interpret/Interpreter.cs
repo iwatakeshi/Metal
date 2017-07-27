@@ -141,6 +141,13 @@ namespace Metal.FrontEnd.Interpret {
       return null;
     }
 
+    public object Visit(Statement.RepeatWhile statement) {
+      do {
+        Execute(statement.Body);
+      } while (IsTruthy(Evaluate(statement.Condition)));
+      return null;
+    }
+
     public object Visit(Statement.For statement) {
       environment.Define(statement.Name.Lexeme, null);
       foreach (var value in (IEnumerable)Evaluate(statement.Range)) {

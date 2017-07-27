@@ -12,6 +12,7 @@ namespace Metal.FrontEnd.Parse.Grammar {
       T Visit(If statement);
       T Visit(For statement);
       T Visit(While statement);
+      T Visit(RepeatWhile statement);
     }
     internal abstract T Accept<T>(IVisitor<T> visitor);
 
@@ -118,7 +119,22 @@ namespace Metal.FrontEnd.Parse.Grammar {
         return visitor.Visit(this);
       }
     }
+    internal class RepeatWhile : Statement {
+      private Expression condition;
+      private Statement body;
 
+      internal Expression Condition => condition;
+      internal Statement Body => body;
+
+      internal RepeatWhile(Expression condition, Statement body) {
+        this.condition = condition;
+        this.body = body;
+      }
+
+      internal override T Accept<T>(IVisitor<T> visitor) {
+        return visitor.Visit(this);
+      }
+    }
     
   }
 }

@@ -58,7 +58,7 @@ namespace Metal.FrontEnd.Parse {
           (TokenType.Reserved, "var"), (TokenType.Reserved, "let"),
           (TokenType.Reserved, "for"), (TokenType.Reserved, "if"),
           (TokenType.Reserved, "while"), (TokenType.Reserved, "return"),
-          (TokenType.Reserved, "print")
+          (TokenType.Reserved, "print"), (TokenType.Reserved, "repeat"),
         };
         if (types.Contains((type, lexeme))) return;
         Next();
@@ -84,6 +84,9 @@ namespace Metal.FrontEnd.Parse {
 
       // Parse while statement
       if (Match((TokenType.Reserved, "while"))) return ParseWhileStatement();
+
+      // Parse repeat-while statement
+      if (Match((TokenType.Reserved, "repeat"))) return ParseRepeatWhileStatement();
 
       // Parse block statement
       if (Match(TokenType.LeftBracePunctuation)) {
@@ -134,6 +137,27 @@ namespace Metal.FrontEnd.Parse {
       return new Statement.Var(name, initializer);
     }
 
+    private Statement ParseIfStatement() {
+      var ifParenthesisEnabled = false;
+      if (Check(TokenType.LeftParenthesisPunctuation)) {
+        ifParenthesisEnabled = true;
+        Next();
+      }
+
+      Expression condition = ParseExpression();
+
+      if (ifParenthesisEnabled) {
+        Consume(TokenType.RightParenthesisPunctuation, "Expect ')' after 'if'.");
+      }
+
+      Statement thenBranch = ParseStatement();
+      Statement elseBranch = null;
+      if (Match((TokenType.Reserved, "else"))) {
+        elseBranch = ParseStatement();
+      }
+      return new Statement.If(condition, thenBranch, elseBranch);
+    }
+
     private Statement ParseForStatement() {
       bool forParenthesisEnabled = false;
       if (Check(TokenType.LeftParenthesisPunctuation)) {
@@ -148,29 +172,42 @@ namespace Metal.FrontEnd.Parse {
       if (forParenthesisEnabled) {
         Consume(TokenType.RightParenthesisPunctuation, "Expect ')' after for clauses.");
       }
-        
+
       Statement body = ParseStatement();
       return new Statement.For(name, range, body);
     }
 
-    private Statement ParseIfStatement() {
-      Consume(TokenType.LeftParenthesisPunctuation, "Expect '(' after 'if'.");
-      Expression condition = ParseExpression();
-      Consume(TokenType.RightParenthesisPunctuation, "Expect ')' after 'if'.");
-      Statement thenBranch = ParseStatement();
-      Statement elseBranch = null;
-      if (Match((TokenType.Reserved, "else"))) {
-        elseBranch = ParseStatement();
-      }
-      return new Statement.If(condition, thenBranch, elseBranch);
-    }
-
     private Statement ParseWhileStatement() {
-      Consume(TokenType.LeftParenthesisPunctuation, "Expect '(' after 'while'.");
+      var whileParenthesisEnabled = false;
+      if (Check(TokenType.LeftParenthesisPunctuation)) {
+        whileParenthesisEnabled = true;
+        Next();
+      }
       Expression condition = ParseExpression();
-      Consume(TokenType.RightParenthesisPunctuation, "Expect ')' after condition.");
+      if (whileParenthesisEnabled) {
+        Consume(TokenType.RightParenthesisPunctuation, "Expect ')' after condition.");
+      }
       Statement body = ParseStatement();
       return new Statement.While(condition, body);
+    }
+
+    private Statement ParseRepeatWhileStatement() {
+      var repeatWhileParenthesisEnabled = false;
+      Statement body = ParseStatement();
+
+      Consume((TokenType.Reserved, "while"), "Expect 'while' after statement.");
+
+      if (Check(TokenType.LeftParenthesisPunctuation)) {
+        repeatWhileParenthesisEnabled = true;
+        Next();
+      }
+      Expression condition = ParseExpression();
+      if (repeatWhileParenthesisEnabled) {
+        Consume(TokenType.RightParenthesisPunctuation, "Expect ')' after condition.");
+      }
+      var end = repeatWhileParenthesisEnabled ? "')'" : "condition";
+      Consume(TokenType.SemiColonPunctuation, "Expect ';' after " + end + ".");
+      return new Statement.RepeatWhile(condition, body);
     }
 
     private Expression ParseExpression() {
