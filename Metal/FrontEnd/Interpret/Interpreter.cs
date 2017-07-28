@@ -115,7 +115,7 @@ namespace Metal.FrontEnd.Interpret {
     }
     public object Visit(Statement.Print statement) {
       Object value = Evaluate(statement.Expression);
-      Console.WriteLine(value == null ? "null" : value);
+      Console.WriteLine(value ?? "null");
       return null;
     }
 
@@ -223,21 +223,29 @@ namespace Metal.FrontEnd.Interpret {
     }
 
     private int ApplyIntOperatorToOperand((int, int) operands, string operand) {
+      int a = operands.Item1, b = operands.Item2;
       switch (operand) {
-        case "+": return operands.Item1 + operands.Item2;
-        case "-": return operands.Item1 - operands.Item2;
-        case "*": return operands.Item1 * operands.Item2;
-        case "/": return operands.Item1 / operands.Item2;
+        case "+": return a + b;
+        case "-": return a - b;
+        case "*": return a * b;
+        case "/": {
+            if (b == 0) throw new RuntimeError("Division by zero.");
+            return a / b;
+          }
       }
       return 0;
     }
 
     private double ApplyDoubleOperatorToOperand((double, double) operands, string operand) {
+      double a = operands.Item1, b = operands.Item2;
       switch (operand) {
-        case "+": return operands.Item1 + operands.Item2;
-        case "-": return operands.Item1 - operands.Item2;
-        case "*": return operands.Item1 * operands.Item2;
-        case "/": return operands.Item1 / operands.Item2;
+        case "+": return a + b;
+        case "-": return a - b;
+        case "*": return a * b;
+        case "/": {
+            if (b == 0) Metal.RuntimeError(new RuntimeError("Division by zero."));
+            return a / b;
+          }
       }
       return 0.0f;
     }
@@ -295,7 +303,9 @@ namespace Metal.FrontEnd.Interpret {
     }
 
     private void Execute(Statement statement) {
-      statement.Accept(this);
+      if (statement != null) {
+        statement.Accept(this);
+      }
     }
 
     private void ExecuteBlock(List<Statement> statements, MetalEnvironment environment) {

@@ -1,13 +1,18 @@
 ﻿using Metal.FrontEnd.Scan;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Metal.Diagnostics.Runtime {
-  public class RuntimeError: Exception {
+
+  public abstract class MetalException : Exception {
+    public MetalException() : base() { }
+    public MetalException(string message) : base(message) { }
+  }
+  
+  public class RuntimeError: MetalException {
     Token token;
+    public RuntimeError() : base() { }
+    public RuntimeError(string message) : base(message) {}
+
     public RuntimeError(Token token, string message) : base(message) {
       this.token = token;
     }

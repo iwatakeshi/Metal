@@ -33,8 +33,9 @@ namespace Metal {
           Parser parser = new Parser(tokens);
           var statements = parser.Parse();
           interpreter.Interpret(statements);
-        } catch (Exception) {
-          Console.Write("");
+        } catch (Exception error) {
+          Console.WriteLine(error.Message);
+          Console.WriteLine(error);
         }
       } else Console.WriteLine("An error occurred.");
     }
@@ -64,9 +65,9 @@ namespace Metal {
 
     public static void Error(Token token, string message) {
       if (token.Type == TokenType.EOF) {
-        Report(token.Line, " at end", message);
+        Report(token.Line, "at end", message);
       } else {
-        Report(token.Line, " at '" + token.Lexeme + "'", message);
+        Report(token.Line, string.Format("at '{0}'", token.Lexeme), message);
       }
     }
     public static void Report(int line, string where, string message) {
@@ -75,7 +76,9 @@ namespace Metal {
     }
 
     public static void RuntimeError(RuntimeError error) {
-      Console.Error.WriteLine(error.Message + string.Format("\n[line {0}]", error.Token.Line));
+      if (error.Token == null) {
+        Console.WriteLine("Error: {0}", error.Message);
+      } else Console.WriteLine("[line {0}] Error: {1}", error.Token.Line, error.Message);
       hadRuntimeError = true;
     }
 
