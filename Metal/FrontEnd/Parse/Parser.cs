@@ -9,7 +9,8 @@ namespace Metal.FrontEnd.Parse {
     private List<Token> tokens;
     private int position = 0;
     private Scanner scanner;
-
+    private bool allowExpression;
+    private bool foundExpression = false;
     public bool IsAtEnd { get { return Current().Type == TokenType.EOF; } }
 
     public Parser(Scanner scanner) {
@@ -28,6 +29,20 @@ namespace Metal.FrontEnd.Parse {
       List<Statement> statements = new List<Statement>();
       while (!IsAtEnd) {
         statements.Add(ParseDeclaration());
+      }
+      return statements;
+    }
+
+    internal object ParseREPL() {
+      allowExpression = true;
+      List<Statement> statements = new List<Statement>();
+      while(!IsAtEnd) {
+        statements.Add(ParseDeclaration());
+        if (foundExpression) {
+          Statement last = statements[statements.Count - 1];
+          return ((Statement.Expr)last).Expression;
+        }
+        allowExpression = false;
       }
       return statements;
     }
@@ -99,6 +114,7 @@ namespace Metal.FrontEnd.Parse {
     private Statement ParseExpressionStatement() {
       Expression expr = ParseExpression();
       Consume(TokenType.SemiColonPunctuation, "Expect ';' after expression.");
+      foundExpression = true;
       return new Statement.Expr(expr);
     }
     private Statement ParsePrintStatement() {
@@ -165,8 +181,7 @@ namespace Metal.FrontEnd.Parse {
         Next();
       }
       var rhs = forParenthesisEnabled ? "'('" : "'for'";
-      Consume((TokenType.Reserved, "var"), "Expect 'var' after " + rhs + ".");
-      Token name = Consume(TokenType.Identifier, "Expect variable name.");
+      Token name = Consume(TokenType.Identifier, "Expect variable name after " + rhs + ".");
       Consume((TokenType.Operator, "in"), "Expect 'in' after variable name.");
       Expression range = ParseExpression();
       if (forParenthesisEnabled) {

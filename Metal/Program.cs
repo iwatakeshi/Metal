@@ -1,9 +1,11 @@
 ﻿using System;
-using Metal.FrontEnd.Scan;
 using System.Collections.Generic;
+using System.Collections;
+using Metal.FrontEnd.Scan;
 using Metal.FrontEnd.Parse;
 using Metal.Diagnostics.Runtime;
 using Metal.FrontEnd.Interpret;
+using Metal.FrontEnd.Parse.Grammar;
 
 namespace Metal {
 
@@ -31,8 +33,14 @@ namespace Metal {
           Scanner scanner = new Scanner(source, isFile);
           List<Token> tokens = scanner.ScanTokens();
           Parser parser = new Parser(tokens);
-          var statements = parser.Parse();
-          interpreter.Interpret(statements);
+          object syntax = parser.ParseREPL();
+          if (syntax is List<Statement>) {
+            interpreter.Interpret((List<Statement>)syntax);
+          } else if (syntax is Expression) {
+            string result = interpreter.Interpret((Expression)syntax);
+            if (!string.IsNullOrEmpty(result)) Console.WriteLine(result);
+          }
+
         } catch (Exception error) {
           Console.WriteLine(error.Message);
           Console.WriteLine(error);

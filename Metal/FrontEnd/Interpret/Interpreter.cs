@@ -292,6 +292,16 @@ namespace Metal.FrontEnd.Interpret {
       return expression.Accept(this);
     }
 
+    internal string Interpret(Expression expression) {
+      try {
+        object value = Evaluate(expression);
+        return value.ToString();
+      } catch(RuntimeError error) {
+        Metal.RuntimeError(error);
+        return null;
+      }
+    }
+
     internal void Interpret(List<Statement> statements) {
       try {
         foreach (var statement in statements) {
