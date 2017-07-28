@@ -9,9 +9,11 @@ namespace Metal.FrontEnd.Parse {
     private List<Token> tokens;
     private int position = 0;
     private Scanner scanner;
-    private bool allowExpression;
+    private bool allowExpression = true;
     private bool foundExpression = false;
     public bool IsAtEnd { get { return Current().Type == TokenType.EOF; } }
+
+    public bool AllowExpression { get => allowExpression; set => allowExpression = value; }
 
     public Parser(Scanner scanner) {
       this.tokens = new List<Token>();
@@ -34,7 +36,7 @@ namespace Metal.FrontEnd.Parse {
     }
 
     internal object ParseREPL() {
-      allowExpression = true;
+      AllowExpression = true;
       List<Statement> statements = new List<Statement>();
       while(!IsAtEnd) {
         statements.Add(ParseDeclaration());
@@ -42,7 +44,7 @@ namespace Metal.FrontEnd.Parse {
           Statement last = statements[statements.Count - 1];
           return ((Statement.Expr)last).Expression;
         }
-        allowExpression = false;
+        AllowExpression = false;
       }
       return statements;
     }
