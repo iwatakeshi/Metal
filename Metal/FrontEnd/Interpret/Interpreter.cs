@@ -243,7 +243,7 @@ namespace Metal.FrontEnd.Interpret {
         case "-": return a - b;
         case "*": return a * b;
         case "/": {
-            if (b == 0) Metal.RuntimeError(new RuntimeError("Division by zero."));
+            if (Equals(b, 0)) Metal.RuntimeError(new RuntimeError("Division by zero."));
             return a / b;
           }
       }
