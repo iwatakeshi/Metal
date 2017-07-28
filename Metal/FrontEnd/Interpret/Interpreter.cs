@@ -96,8 +96,18 @@ namespace Metal.FrontEnd.Interpret {
     }
 
     private object ApplyRangeOperator((int, int) operands) {
-      return Enumerable.Range(operands.Item1, operands.Item2);
+      var a = operands.Item1;
+      var b = operands.Item2;
+      return CreateRange(a, b);
     }
+
+    IEnumerable<int> CreateRange(int a, int b) {
+      var increment = b > a ? 1 : -1;
+      for (var i = a; i != b; i += increment)
+        yield return i;
+      yield return b;
+    }
+
 
     /* Visit Statements */
     public object Visit(Statement.Expr statement) {
