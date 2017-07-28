@@ -223,21 +223,23 @@ namespace Metal.FrontEnd.Interpret {
     }
 
     private int ApplyIntOperatorToOperand((int, int) operands, string operand) {
+      var a = operands.Item1, b = operands.Item2;
       switch (operand) {
-        case "+": return operands.Item1 + operands.Item2;
-        case "-": return operands.Item1 - operands.Item2;
-        case "*": return operands.Item1 * operands.Item2;
-        case "/": return operands.Item1 / operands.Item2;
+        case "+": return a + b;
+        case "-": return a - b;
+        case "*": return a * b;
+        case "/": return  b == 0 ? RuntimeError("Division by zero.") : a / b;
       }
       return 0;
     }
 
     private double ApplyDoubleOperatorToOperand((double, double) operands, string operand) {
+      var a = operands.Item1, b = operands.Item2;
       switch (operand) {
-        case "+": return operands.Item1 + operands.Item2;
-        case "-": return operands.Item1 - operands.Item2;
-        case "*": return operands.Item1 * operands.Item2;
-        case "/": return operands.Item1 / operands.Item2;
+        case "+": return a + b;
+        case "-": return a - b;
+        case "*": return a * b;
+        case "/": return b == 0 ? RuntimeError("Division by zero"): a / b;
       }
       return 0.0f;
     }
