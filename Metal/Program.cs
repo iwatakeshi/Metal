@@ -61,6 +61,7 @@ namespace Metal {
         var line = Console.In.ReadLine();
         if (line == "clear") {
           hadError = false;
+          interpreter.ResetEnvironment();
           Console.Clear();
           About.Print();
         } else Run(line, false);

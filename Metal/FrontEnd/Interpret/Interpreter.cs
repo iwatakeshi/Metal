@@ -11,7 +11,6 @@ namespace Metal.FrontEnd.Interpret {
 
     private MetalEnvironment environment = new MetalEnvironment();
 
-
     public object Visit(Expression.Binary expression) {
       object left = Evaluate(expression.Left);
       object right = Evaluate(expression.Right);
@@ -92,6 +91,10 @@ namespace Metal.FrontEnd.Interpret {
       }
 
       return null;
+    }
+
+    internal void ResetEnvironment() {
+      environment = new MetalEnvironment();
     }
 
     private object ApplyRangeOperator((int, int) operands) {

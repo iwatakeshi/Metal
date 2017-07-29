@@ -11,7 +11,6 @@ namespace Metal.FrontEnd.Interpret {
 
     private MetalEnvironment environment = new MetalEnvironment();
 
-
     public object Visit(Expression.Binary expression) {
       object left = Evaluate(expression.Left);
       object right = Evaluate(expression.Right);
@@ -294,6 +293,10 @@ namespace Metal.FrontEnd.Interpret {
       } catch (RuntimeError error) {
         Metal.RuntimeError(error);
       }
+    }
+
+    internal void Clear() {
+      environment = new MetalEnvironment();
     }
 
     private void Execute(Statement statement) {
