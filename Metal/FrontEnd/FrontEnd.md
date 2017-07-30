@@ -57,44 +57,120 @@ Others resemble a sequential assembly code program
 ## Grammar
 
 ```
-program					→ declaration* eof;
 
-declaration				→ var-declaration
-						| statement ;
-
-statement				→ expression-statement
-						| for-statement
-						| if-statement
-						| print-statement
-						| while-statement
-						| block;
+TODO: this.
 
 
-for-statement			→ 'for' '(' ( var-declaration | expr-statement | ';') expression? ';' expression ';' ')' statement ';' ;
-if-statement			→ 'if' '(' expression ')' statement ( 'else' statement )? ;
 
-while-statement			→ 'while' '(' expression ')' statement ;
-
-var-declaration			→ 'var' IDENTFIER ( '=' expression )? ;
-
-block					→ '{' declaration* '}' ;
-
-print-statement			→ 'print' '(' expression ')' ';' ;
-
-primary					→ 'true' | 'false' | 'null' | 'this'
-						| NUMBER | STRING
-						| '(' expression ')'
-						| IDENTIFER
-
-expression				→ assignment ;
-
-assignment				→ IDENTIFIER '=' assignment
-						| logical-or
-
-logical-or				| logical-and ( '||' logical-and )* ;
-
-logical-and				| equality
+program                     → declaration* EOF ;
 
 
+
+declaration                 → class-declaration
+
+                            | function-declaration
+
+                            | var-declaration
+
+                            | statement ;
+
+
+
+statement                   → expression-statement
+
+                            | for-statement
+
+                            | if-statement
+
+                            | print-statement
+
+                            | return-statement
+
+                            | while-statement
+
+							| repeat-statement
+
+                            | block ;
+
+
+
+class-declaration           → "class" IDENTIFIER ( ":" IDENTIFIER )? "{" function* "}" ;
+
+function-declaration        → "func" function ;
+
+var-declaration             → "var" IDENTIFIER ( "=" expression )? ";" ;
+
+
+
+expression-statement        → expression ";" ;
+
+for-statement               → "for" ( "(" )? IDENTIFIER "in" expression ( ")" )? statement ;
+
+if-statement                → "if" "(" expression ")" statement ( "else" statement )? ;
+
+print-statement             → "print" expression ";" ;
+
+return-statement            → "return" expression? ";" ;
+
+while-statement             → "while" "(" expression ")" statement ;
+
+repeat-statement			→ "repeat" statement "while" "(" expression ")" ";" ;
+
+block                       → "{" declaration* "}" ;
+
+function                    → IDENTIFIER "(" parameters? ")" block ;
+
+parameters                  → IDENTIFIER ( "," IDENTIFIER )* ;
+
+
+
+expression                  → assignment ;
+
+assignment                  → ( call "." )? IDENTIFIER "=" assignment
+
+                            | logical-or;
+
+logical-or                  → logical-and ( "or" logical-and )* ;
+
+logical-and                 → equality ( "and" equality )* ;
+
+equality                    → comparison ( ( "!=" | "==" ) comparison )* ;
+
+comparison                  → addition ( ( ">" | ">=" | "<" | "<=" ) addition )* ;
+
+addition                    → multiplication ( ( "-" | "+" ) multiplication )* ;
+
+multiplication              → unary ( ( "/" | "*" ) unary )* ;
+
+unary                       → ( "!" | "-" ) unary | call ;
+
+binary                      → expression operator expression
+
+call                        → primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
+
+primary                     → "true" | "false" | "null" | "this"
+
+                            | NUMBER | STRING | IDENTIFIER | "(" expression ")" ;
+
+
+operator                    → "==" | "!=" | "<" | "<=" | ">" | ">="
+                            | "+"  | "-"  | "*" | "/" | ".."
+arguments                   → expression ( "," expression )* ;
+
+
+
+lexical:
+
+
+
+NUMBER                      → DIGIT+ ( "." DIGIT* )? | "." DIGIT+ ;
+
+STRING                      → '"' <any char except '"'>* '"' ;
+
+IDENTIFIER                  → ALPHA ( ALPHA | DIGIT )* ;
+
+ALPHA                       → 'a' ... 'z' | 'A' ... 'Z' | '_' ;
+
+DIGIT                       → '0' ... '9' ;
 
 ```

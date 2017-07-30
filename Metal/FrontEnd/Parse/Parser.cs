@@ -84,6 +84,61 @@ namespace Metal.FrontEnd.Parse {
       }
     }
 
+    private bool Match(params (TokenType, string)[] types) {
+      foreach (var type in types) {
+        if (Check(type)) {
+          Next();
+          return true;
+        }
+      }
+      return false;
+    }
+    
+    private bool Match(params TokenType[] types) {
+      foreach (var type in types) {
+        if (Check((type))) {
+          Next();
+          return true;
+        }
+      }
+      return false;
+    }
+
+    private bool Check(params TokenType[] types) {
+      foreach (var type in types) {
+        if (Check((type, null))) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    private bool Check((TokenType, string) type) {
+      if (IsAtEnd) return false;
+      if (type.Item2 == null) {
+        return type.Item1 == Current().Type;
+      }
+
+      return type.Item1 == Current().Type && type.Item2 == Current().Lexeme;
+    }
+
+    private Token Consume((TokenType, string) type, string message) {
+      if (Check(type)) return Next();
+      throw Error(Current(), message);
+
+    }
+    private Token Consume(TokenType type, string message) {
+      if (Check((type, null))) return Next();
+      throw Error(Current(), message);
+    }
+
+    private ParseError Error(Token token, string message) {
+      Metal.Error(token, message);
+      return new ParseError();
+    }
+
+    /* Statements */
+
     private Statement ParseStatement() {
 
       // Parse for statement
@@ -145,7 +200,6 @@ namespace Metal.FrontEnd.Parse {
         Synchronize();
         return null;
       }
-
     }
 
     private Statement ParseVarDeclaration() {
@@ -231,6 +285,8 @@ namespace Metal.FrontEnd.Parse {
         Consume(TokenType.SemiColonPunctuation, "Expect ';' after " + end + ".");
       return new Statement.RepeatWhile(condition, body);
     }
+
+    /* Expressions */
 
     private Expression ParseExpression() {
       return ParseAssignment();
@@ -349,61 +405,7 @@ namespace Metal.FrontEnd.Parse {
         Consume(TokenType.RightParenthesisPunctuation, "Expect ')' after expression.");
         return new Expression.Parenthesized(expression);
       }
-      Console.WriteLine(Current());
       throw Error(Current(), "Expect expression.");
-    }
-
-    private bool Match(params (TokenType, string)[] types) {
-      foreach (var type in types) {
-        if (Check(type)) {
-          Next();
-          return true;
-        }
-      }
-      return false;
-    }
-
-    private bool Match(params TokenType[] types) {
-      foreach (var type in types) {
-        if (Check((type))) {
-          Next();
-          return true;
-        }
-      }
-      return false;
-    }
-
-    private bool Check(params TokenType[] types) {
-      foreach (var type in types) {
-        if (Check((type, null))) {
-          return true;
-        }
-      }
-      return false;
-    }
-
-    private bool Check((TokenType, string) type) {
-      if (IsAtEnd) return false;
-      if (type.Item2 == null) {
-        return type.Item1 == Current().Type;
-      }
-
-      return type.Item1 == Current().Type && type.Item2 == Current().Lexeme;
-    }
-
-    private Token Consume((TokenType, string) type, string message) {
-      if (Check(type)) return Next();
-      throw Error(Current(), message);
-
-    }
-    private Token Consume(TokenType type, string message) {
-      if (Check((type, null))) return Next();
-      throw Error(Current(), message);
-    }
-
-    private ParseError Error(Token token, string message) {
-      Metal.Error(token, message);
-      return new ParseError();
     }
   }
 }
