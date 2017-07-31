@@ -1,5 +1,6 @@
 ﻿using Metal.Diagnostics.Runtime;
-using Metal.FrontEnd.Parse.Grammar;
+using Metal.FrontEnd.Grammar;
+using Metal.FrontEnd.Analyze;
 using Metal.FrontEnd.Scan;
 using System;
 using System.Collections.Generic;
@@ -7,9 +8,127 @@ using Metal.Intermediate;
 using System.Collections;
 
 namespace Metal.FrontEnd.Interpret {
-  class Interpreter : Expression.IVisitor<object>, Statement.IVisitor<object> {
+  public class Interpreter : Expression.IVisitor<object>, Statement.IVisitor<object> {
 
-    private MetalEnvironment environment = new MetalEnvironment();
+
+    MetalEnvironment globals = new MetalEnvironment();
+    MetalEnvironment environment;
+
+    public Interpreter() {
+      globals.Define("clock", new MetalType.Callable ((arg1, arg2) => {
+        long milliseconds = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
+        return milliseconds;
+      }));
+      environment = globals;
+    }
+
+    public void ResetEnvironment() {
+      environment = new MetalEnvironment();
+    }
+
+
+    /* Visit Statements */
+    public object Visit(Statement.Expr statement) {
+      Evaluate(statement.Expression);
+      return null;
+    }
+    public object Visit(Statement.Print statement) {
+      Object value = Evaluate(statement.Expression);
+      Console.WriteLine(value ?? "null");
+      return null;
+    }
+
+    public object Visit(Statement.Block statement) {
+      ExecuteBlock(statement.Statements, new MetalEnvironment(environment));
+      return null;
+    }
+
+    public object Visit(Statement.Var statement) {
+
+      object value = null;
+      if (statement.Initializer != null) {
+        value = Evaluate(statement.Initializer);
+      }
+      environment.Define(statement.Name.Lexeme, value);
+      return null;
+    }
+
+    public object Visit(Statement.Function statement) {
+      MetalType.Function function = new MetalType.Function(statement);
+      environment.Define(statement.Name.Lexeme, function);
+      return null;
+    }
+
+    public object Visit(Statement.If statement) {
+      if (IsTruthy(statement.Condition)) {
+        Execute(statement.ThenBranch);
+      } else if (statement.ElseBranch != null) {
+        Execute(statement.ElseBranch);
+      }
+      return null;
+    }
+
+    public object Visit(Statement.While statement) {
+      while (IsTruthy(Evaluate(statement.Condition))) {
+        Execute(statement.Body);
+      }
+      return null;
+    }
+
+    public object Visit(Statement.RepeatWhile statement) {
+      do {
+        Execute(statement.Body);
+      } while (IsTruthy(Evaluate(statement.Condition)));
+      return null;
+    }
+
+    public object Visit(Statement.For statement) {
+      environment.Define(statement.Name.Lexeme, null);
+      foreach (var value in (IEnumerable)Evaluate(statement.Range)) {
+        environment.Assign(statement.Name, value);
+        Execute(statement.Body);
+      }
+      return null;
+    }
+
+    /* Visit Expressions */
+
+    public object Visit(Expression.Assign expression) {
+      object value = Evaluate(expression.Value);
+      environment.Assign(expression.Name, value);
+      return value;
+    }
+
+    public object Visit(Expression.Logical expression) {
+      object left = Evaluate(expression.Left);
+      if (expression.Operator.IsOperator("or")) {
+        if (IsTruthy(left)) return left;
+      } else {
+        if (!IsTruthy(left)) return left;
+      }
+      return Evaluate(expression.Right);
+    }
+
+    public object Visit(Expression.Literal expression) {
+      return expression.Value;
+    }
+
+    public object Visit(Expression.Parenthesized expression) {
+      return Evaluate(expression.Center);
+    }
+
+    public object Visit(Expression.Unary expression) {
+      object right = Evaluate(expression.Right);
+      if (expression.Operator.IsOperator("-")) {
+        CheckNumberOperand(expression.Operator, right);
+        if (right is double) return -(double)right;
+        else return -(int)right;
+      }
+      if (expression.Operator.IsOperator("!")) {
+        return !IsTruthy(right);
+      }
+      return null;
+    }
 
     public object Visit(Expression.Binary expression) {
       object left = Evaluate(expression.Left);
@@ -93,123 +212,31 @@ namespace Metal.FrontEnd.Interpret {
       return null;
     }
 
-    internal void ResetEnvironment() {
-      environment = new MetalEnvironment();
-    }
-
-    private object ApplyRangeOperator((int, int) operands) {
-      var a = operands.Item1;
-      var b = operands.Item2;
-      return CreateRange(a, b);
-    }
-
-    IEnumerable<int> CreateRange(int a, int b) {
-      var increment = b > a ? 1 : -1;
-      for (var i = a; i != b; i += increment)
-        yield return i;
-      yield return b;
-    }
-
-
-    /* Visit Statements */
-    public object Visit(Statement.Expr statement) {
-      Evaluate(statement.Expression);
-      return null;
-    }
-    public object Visit(Statement.Print statement) {
-      Object value = Evaluate(statement.Expression);
-      Console.WriteLine(value ?? "null");
-      return null;
-    }
-
-    public object Visit(Statement.Block statement) {
-      ExecuteBlock(statement.Statements, new MetalEnvironment(environment));
-      return null;
-    }
-
-    public object Visit(Statement.Var statement) {
-      
-      object value = null;
-      if (statement.Initializer != null) {
-        value = Evaluate(statement.Initializer);
+    public object Visit(Expression.Call expression) {
+      object callee = Evaluate(expression.Callee);
+      List<object> arguments = new List<object>();
+      foreach (var argument in expression.Arguments) {
+        arguments.Add(Evaluate(argument));
       }
-      environment.Define(statement.Name.Lexeme, value);
-      return null;
-    }
-
-    public object Visit(Statement.If statement) {
-      if(IsTruthy(statement.Condition)) {
-        Execute(statement.ThenBranch);
-      } else if (statement.ElseBranch != null) {
-        Execute(statement.ElseBranch);
+      if (!(callee is MetalType.ICallable)) {
+        throw new RuntimeError(expression.Parenthesis,
+        "Can only call functions and classes");
       }
-      return null;
-    }
+      MetalType.ICallable function = (MetalType.ICallable)callee;
 
-    public object Visit(Statement.While statement) {
-      while(IsTruthy(Evaluate(statement.Condition))) {
-        Execute(statement.Body);
+      if (arguments.Count != function.Arity) {
+        throw new RuntimeError(expression.Parenthesis,
+          string.Format("Expected {0} arguments but got {1}.", function.Arity, arguments.Count));
       }
-      return null;
-    }
 
-    public object Visit(Statement.RepeatWhile statement) {
-      do {
-        Execute(statement.Body);
-      } while (IsTruthy(Evaluate(statement.Condition)));
-      return null;
-    }
-
-    public object Visit(Statement.For statement) {
-      environment.Define(statement.Name.Lexeme, null);
-      foreach (var value in (IEnumerable)Evaluate(statement.Range)) {
-        environment.Assign(statement.Name, value);
-        Execute(statement.Body);
-      }
-      return null;
-    }
-
-    /* Visit Expressions */
-    public object Visit(Expression.Assign expression) {
-      object value = Evaluate(expression.Value);
-      environment.Assign(expression.Name, value);
-      return value;
-    }
-
-    public object Visit(Expression.Logical expression) {
-      object left = Evaluate(expression.Left);
-      if (expression.Operator.IsOperator("or")) {
-        if (IsTruthy(left)) return left;
-      } else {
-        if (!IsTruthy(left)) return left;
-      }
-      return Evaluate(expression.Right);
-    }
-
-    public object Visit(Expression.Literal expression) {
-      return expression.Value;
-    }
-
-    public object Visit(Expression.Parenthesized expression) {
-      return Evaluate(expression.Center);
-    }
-
-    public object Visit(Expression.Unary expression) {
-      object right = Evaluate(expression.Right);
-      if (expression.Operator.IsOperator("-")) {
-        CheckNumberOperand(expression.Operator, right);
-        if (right is double) return -(double)right;
-        else return -(int)right;
-      }
-      if (expression.Operator.IsOperator("!")) {
-        return !IsTruthy(right);
-      }
-      return null;
+      return function.Call(this, arguments);
     }
 
     public object Visit(Expression.Variable expression) {
       return environment.Get(expression.Name);
     }
+
+    /* Helpers */
 
     private (int, int) ConvertObjectToInt(object left, object right) {
       int.TryParse(left.ToString(), out int a);
@@ -263,6 +290,19 @@ namespace Metal.FrontEnd.Interpret {
       return false;
     }
 
+    private object ApplyRangeOperator((int, int) operands) {
+      var a = operands.Item1;
+      var b = operands.Item2;
+      return CreateRange(a, b);
+    }
+
+    IEnumerable<int> CreateRange(int a, int b) {
+      var increment = b > a ? 1 : -1;
+      for (var i = a; i != b; i += increment)
+        yield return i;
+      yield return b;
+    }
+
     private void CheckNullOperand(Token @operator, object left, object right) {
       if (left == null || right == null) {
         throw new RuntimeError(@operator, "Operand must not be null.");
@@ -298,8 +338,8 @@ namespace Metal.FrontEnd.Interpret {
     internal string Interpret(Expression expression) {
       try {
         object value = Evaluate(expression);
-        return value.ToString();
-      } catch(RuntimeError error) {
+        return value?.ToString();
+      } catch (RuntimeError error) {
         Metal.RuntimeError(error);
         return null;
       }
@@ -315,13 +355,15 @@ namespace Metal.FrontEnd.Interpret {
       }
     }
 
-    private void Execute(Statement statement) {
+    public void Execute(Statement statement) {
       if (statement != null) {
         statement.Accept(this);
       }
     }
 
-    private void ExecuteBlock(List<Statement> statements, MetalEnvironment environment) {
+    public void ExecuteBlock(List<Statement> statements, MetalEnvironment environment) {
+      if (environment == null)
+        throw new ArgumentNullException(nameof(environment));
       MetalEnvironment previous = this.environment;
       try {
         this.environment = environment;
@@ -332,7 +374,6 @@ namespace Metal.FrontEnd.Interpret {
         this.environment = previous;
       }
     }
-
-
   }
 }
+

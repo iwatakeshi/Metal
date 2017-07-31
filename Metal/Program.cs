@@ -5,7 +5,7 @@ using Metal.FrontEnd.Scan;
 using Metal.FrontEnd.Parse;
 using Metal.Diagnostics.Runtime;
 using Metal.FrontEnd.Interpret;
-using Metal.FrontEnd.Parse.Grammar;
+using Metal.FrontEnd.Grammar;
 using System.Text;
 
 namespace Metal {

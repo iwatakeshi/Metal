@@ -4,21 +4,21 @@ using System;
 using System.Collections.Generic;
 
 namespace Metal.Intermediate {
-  internal class MetalEnvironment {
+  public class MetalEnvironment {
     private readonly Dictionary<string, object> values = new Dictionary<string, object>();
     private readonly MetalEnvironment enclosing;
 
-    internal MetalEnvironment() {
+    public MetalEnvironment() {
       this.enclosing = null;
     }
-    internal MetalEnvironment(MetalEnvironment enclosing) {
+    public MetalEnvironment(MetalEnvironment enclosing) {
       this.enclosing = enclosing;
     }
-    internal void Define(string name, object value) {
+    public void Define(string name, object value) {
       values[name] = value;
     }
 
-    internal object Get(Token name) {
+    public object Get(Token name) {
       if(values.ContainsKey(name.Lexeme)) {
         return values[name.Lexeme];
       }
@@ -28,7 +28,7 @@ namespace Metal.Intermediate {
       throw new RuntimeError(name, "Undefined variable '" + name.Lexeme + "'.");
     }
 
-    internal void Assign(Token name, object value) {
+    public void Assign(Token name, object value) {
       if (values.ContainsKey(name.Lexeme)) {
         values[name.Lexeme] = value;
         return;
