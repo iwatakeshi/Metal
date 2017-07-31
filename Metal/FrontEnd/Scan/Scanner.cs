@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Metal;
 using Metal.IO;
 using System.Text.RegularExpressions;
 

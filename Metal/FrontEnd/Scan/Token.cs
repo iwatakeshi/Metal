@@ -113,7 +113,7 @@ namespace Metal.FrontEnd.Scan {
         case "class":
         case "enum":
         case "extends":
-        case "fn":
+        case "func":
         case "import":
         case "export":
         case "init":

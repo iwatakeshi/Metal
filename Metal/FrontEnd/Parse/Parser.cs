@@ -1,4 +1,4 @@
-﻿using Metal.FrontEnd.Parse.Grammar;
+﻿using Metal.FrontEnd.Grammar;
 using Metal.FrontEnd.Scan;
 using System;
 using System.Collections.Generic;
@@ -63,9 +63,14 @@ namespace Metal.FrontEnd.Parse {
         tokens = scanner.Tokens;
       }
       if (!IsAtEnd) position++;
-      return Previous();
+      return PeekBack();
     }
-    private Token Previous() {
+
+    private Token Peek() {
+      return tokens[position + 1];
+    }
+
+    private Token PeekBack() {
       return tokens[position - 1];
     }
 
@@ -75,7 +80,7 @@ namespace Metal.FrontEnd.Parse {
         var type = Current().Type;
         var lexeme = Current().Lexeme;
         var types = new List<(TokenType, string)> {
-          (TokenType.Reserved, "class"), (TokenType.Reserved, "fn"),
+          (TokenType.Reserved, "class"), (TokenType.Reserved, "func"),
           (TokenType.Reserved, "var"), (TokenType.Reserved, "let"),
           (TokenType.Reserved, "for"), (TokenType.Reserved, "if"),
           (TokenType.Reserved, "while"), (TokenType.Reserved, "return"),
@@ -173,6 +178,8 @@ namespace Metal.FrontEnd.Parse {
       // Parse expression statement
       return ParseExpressionStatement();
     }
+
+
     private Statement ParseExpressionStatement() {
       Expression expr = ParseExpression();
       if (EnforceGrammarSemiColon)
@@ -196,6 +203,7 @@ namespace Metal.FrontEnd.Parse {
 
     private Statement ParseDeclaration() {
       try {
+        if (Match((TokenType.Reserved, "func"))) return ParseFuncDeclaration("function");
         if (Match((TokenType.Reserved, "var"))) return ParseVarDeclaration();
         else return ParseStatement();
       } catch (ParseError) {
@@ -213,6 +221,25 @@ namespace Metal.FrontEnd.Parse {
       if (EnforceGrammarSemiColon)
         Consume(TokenType.SemiColonPunctuation, "Expect ';' after variable declaration.");
       return new Statement.Var(name, initializer);
+    }
+
+
+    public Statement.Function ParseFuncDeclaration(string kind) {
+      Token name = Consume(TokenType.Identifier, string.Format("Expect {0} name.", kind));
+      List<Token> parameters = new List<Token>();
+      Consume(TokenType.LeftParenthesisPunctuation, string.Format("Expect '(' after {0} name.", kind));
+      if (!Check(TokenType.RightParenthesisPunctuation)) {
+        do {
+          if (parameters.Capacity >= 10) {
+            Error(Peek(), "Cannot have more than 10 parameters.");
+          }
+          parameters.Add(Consume(TokenType.Identifier, "Expect parameter name."));
+        } while (Match(TokenType.CommaPunctuation));
+      }
+      Consume(TokenType.RightParenthesisPunctuation, "Expect ')' after parameters.");
+      Consume(TokenType.LeftBracePunctuation, string.Format("Expect '{0}' before {1} body", "{", kind));
+      List<Statement> body = ParseBlockStatement();
+      return new Statement.Function(name, parameters, body);
     }
 
     private Statement ParseIfStatement() {
@@ -297,7 +324,7 @@ namespace Metal.FrontEnd.Parse {
     private Expression ParseAssignment() {
       Expression expression = ParseOr();
       if (Match((TokenType.Operator, "="))) {
-        Token equals = Previous();
+        Token equals = PeekBack();
         Expression value = ParseAssignment();
         if (expression is Expression.Variable) {
           Token name = ((Expression.Variable)expression).Name;
@@ -311,7 +338,7 @@ namespace Metal.FrontEnd.Parse {
     private Expression ParseOr() {
       Expression expression = ParseAnd();
       while (Match((TokenType.Operator, "or"))) {
-        Token @operator = Previous();
+        Token @operator = PeekBack();
         Expression right = ParseAnd();
         expression = new Expression.Logical(expression, @operator, right);
       }
@@ -321,7 +348,7 @@ namespace Metal.FrontEnd.Parse {
     private Expression ParseAnd() {
       Expression expression = ParseEquality();
       while (Match((TokenType.Operator, "and"))) {
-        Token @operator = Previous();
+        Token @operator = PeekBack();
         Expression right = ParseEquality();
         expression = new Expression.Logical(expression, @operator, right);
       }
@@ -331,7 +358,7 @@ namespace Metal.FrontEnd.Parse {
     private Expression ParseEquality() {
       Expression expression = ParseComparison();
       while (Match((TokenType.Operator, "!="), (TokenType.Operator, "=="))) {
-        Token @operator = Previous();
+        Token @operator = PeekBack();
         Expression right = ParseComparison();
         expression = new Expression.Binary(expression, @operator, right);
       }
@@ -344,7 +371,7 @@ namespace Metal.FrontEnd.Parse {
         (TokenType.Operator, ">"), (TokenType.Operator, ">="),
         (TokenType.Operator, "<"), (TokenType.Operator, "<=")
       )) {
-        Token @operator = Previous();
+        Token @operator = PeekBack();
         Expression right = ParseTerm();
         expression = new Expression.Binary(expression, @operator, right);
       }
@@ -357,7 +384,7 @@ namespace Metal.FrontEnd.Parse {
         (TokenType.Operator, "+"), (TokenType.Operator, "-"),
         (TokenType.Operator, "..")
       )) {
-        Token @operator = Previous();
+        Token @operator = PeekBack();
         Expression right = ParseFactor();
         expression = new Expression.Binary(expression, @operator, right);
       }
@@ -369,7 +396,7 @@ namespace Metal.FrontEnd.Parse {
       while (Match(
         (TokenType.Operator, "/"), (TokenType.Operator, "*")
       )) {
-        Token @operator = Previous();
+        Token @operator = PeekBack();
         Expression right = ParseUnary();
         return new Expression.Binary(expression, @operator, right);
       }
@@ -379,12 +406,38 @@ namespace Metal.FrontEnd.Parse {
     private Expression ParseUnary() {
       if (Match(
         (TokenType.Operator, "!"), (TokenType.Operator, "-"))) {
-        Token @operator = Previous();
+        Token @operator = PeekBack();
         Expression right = ParseUnary();
         return new Expression.Unary(@operator, right);
       }
-      return ParsePrimary();
+      return ParseCall();
     }
+
+    private Expression ParseCall () {
+      Expression expression = ParsePrimary();
+      while (true) {
+        if (Match(TokenType.LeftParenthesisPunctuation)) {
+          expression = FinishCall(expression);
+        } else break;
+      }
+      return expression;
+    }
+
+    private Expression FinishCall(Expression callee) {
+      List<Expression> arguments = new List<Expression>();
+      if (!Check(TokenType.RightParenthesisPunctuation)) {
+        do {
+          if (arguments.Capacity >= 10) {
+            Error(Peek(), "Cannot have more than 10 arguments.");
+          }
+          arguments.Add(ParseExpression());
+        } while (Match(TokenType.CommaPunctuation));
+      }
+      Token parenthesis = Consume(TokenType.RightParenthesisPunctuation, "Expect ')' after arguments.");
+      return new Expression.Call(callee, parenthesis, arguments);
+
+    }
+
 
     private Expression ParsePrimary() {
       if (Match((TokenType.BooleanLiteral, "false"))) return new Expression.Literal(false);
@@ -395,11 +448,11 @@ namespace Metal.FrontEnd.Parse {
         TokenType.IntegerLiteral, TokenType.FloatingPointLiteral,
         TokenType.StringLiteral, TokenType.CharacterLiteral
       )) {
-        return new Expression.Literal(Previous().Literal);
+        return new Expression.Literal(PeekBack().Literal);
       }
 
       if (Match(TokenType.Identifier)) {
-        return new Expression.Variable(Previous());
+        return new Expression.Variable(PeekBack());
       }
 
       if (Match(TokenType.LeftParenthesisPunctuation)) {
