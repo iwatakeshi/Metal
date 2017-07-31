@@ -96,6 +96,7 @@ namespace Metal.FrontEnd.Scan {
         case '#': while (Current() != '\n' && !IsAtEnd) Next(); break;
         /* Whitespaces */
         case ' ':
+        case '\n':
         case '\r':
         case '\t': break;
         /* String Literals */
