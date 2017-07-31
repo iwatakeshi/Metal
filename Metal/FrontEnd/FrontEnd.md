@@ -1,4 +1,4 @@
-﻿# Front End
+﻿﻿# Front End
 
 ### Purpose:
 
@@ -98,7 +98,7 @@ class-declaration           → "class" IDENTIFIER ( ":" IDENTIFIER )? "{" funct
 
 function-declaration        → "func" function ;
 
-var-declaration             → "var" IDENTIFIER ( "=" expression )? ";" ;
+var-declaration             → "var" IDENTIFIER ( "=" expression ( ":" type-denoter )? )? ";" ;
 
 
 

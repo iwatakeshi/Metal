@@ -44,7 +44,9 @@ namespace Metal.FrontEnd.Parse {
         statements.Add(ParseDeclaration());
         if (foundExpression) {
           Statement last = statements[statements.Count - 1];
-          return ((Statement.Expr)last).Expression;
+          if (last is Statement.Expr) {
+            return ((Statement.Expr)last).Expression;
+          }
         }
         AllowExpression = false;
       }
