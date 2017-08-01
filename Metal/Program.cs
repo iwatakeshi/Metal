@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections;
 using Metal.FrontEnd.Scan;
 using Metal.FrontEnd.Parse;
-using Metal.Diagnostics.Runtime;
 using Metal.FrontEnd.Interpret;
 using Metal.FrontEnd.Grammar;
+using Metal.FrontEnd.Exceptions;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Metal {
 
@@ -61,14 +61,8 @@ namespace Metal {
       About.Print();
       for (;;) {
         Console.Write("> ");
-        lines.AppendLine(Console.In.ReadLine());
-        /// <summary>
-        /// Gets the end of line.
-        /// </summary>
-        /// <returns>The end of line.</returns>
-        string GetEndOfLine() {
-          return lines.Length > 1 ? lines[lines.Length - 2].ToString() : "\n";
-        }
+          lines.AppendLine(Console.In.ReadLine());
+
         if (lines.ToString().Contains("clear")) {
           hadError = false;
           interpreter.ResetEnvironment();
@@ -76,17 +70,28 @@ namespace Metal {
           About.Print();
         } else {
           var braceCount = 0;
-          if (GetEndOfLine().Equals("{")) {
-            braceCount++;
+          var line = Regex.Replace(lines.ToString(), @"\t|\n|\r", "");
+          if (line[line.Length - 1] == '{') {
+            // Initially count all '{' and assume that
+            // they are correctly closed with '}'
+            foreach(var ch in line) {
+              if (ch == '{') braceCount++;
+            }
 
             while (braceCount != 0) {
               if (!hadError && !hadRuntimeError) {
                 Console.Write("{0} ", new String('.', braceCount * 3));
               }
-              var line = Console.In.ReadLine();
+
+              line = Console.In.ReadLine();
+
+              if (line.Contains("{") || line.Contains("}")) {
+                foreach (var ch in line) {
+                  if (ch == '{') braceCount++;
+                  else if (ch == '}') braceCount--;
+                }
+              }
               lines.AppendLine(line);
-              if (line.Contains("{")) braceCount++;
-              else if (line.Contains("}")) braceCount--;
               //Console.WriteLine(lines.ToString());
             }
           }
@@ -112,7 +117,7 @@ namespace Metal {
       hadError = true;
     }
 
-    public static void RuntimeError(RuntimeError error) {
+    public static void RuntimeError(MetalException.Runtime error) {
       if (error.Token == null) {
         Console.WriteLine("Error: {0}", error.Message);
       } else Console.WriteLine("[line {0}] Error: {1}", error.Token.Line, error.Message);

@@ -1,6 +1,5 @@
 ﻿using Metal.FrontEnd.Scan;
 using System.Collections.Generic;
-using System;
 
 namespace Metal.FrontEnd.Grammar {
   public abstract class Statement {
@@ -14,6 +13,7 @@ namespace Metal.FrontEnd.Grammar {
       T Visit(For statement);
       T Visit(While statement);
       T Visit(RepeatWhile statement);
+      T Visit(Return statement);
     }
     public abstract T Accept<T>(IVisitor<T> visitor);
 
@@ -67,9 +67,9 @@ namespace Metal.FrontEnd.Grammar {
 
     public class Function : Statement {
 
-      private Token name;
-      private List<Token> parameters;
-      private List<Statement> body;
+      Token name;
+      List<Token> parameters;
+      List<Statement> body;
       public Token Name => name;
       public List<Token> Parameters => parameters;
       public List<Statement> Body => body;
@@ -82,7 +82,20 @@ namespace Metal.FrontEnd.Grammar {
       public override T Accept<T>(IVisitor<T> visitor) {
         return visitor.Visit(this);
       }
+    }
 
+    public class Return : Statement {
+      Token keyword;
+      Expression value;
+      public Token Keyword => keyword;
+      public Expression Value => value;
+      public Return(Token keyword, Expression value) {
+        this.keyword = keyword;
+        this.value = value;
+      }
+      public override T Accept<T>(IVisitor<T> visitor) {
+        return visitor.Visit(this);
+      }
     }
 
     public class If : Statement {
