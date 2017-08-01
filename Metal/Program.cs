@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections;
 using Metal.FrontEnd.Scan;
 using Metal.FrontEnd.Parse;
-using Metal.Diagnostics.Runtime;
 using Metal.FrontEnd.Interpret;
 using Metal.FrontEnd.Grammar;
+using Metal.FrontEnd.Exceptions;
 using System.Text;
 
 namespace Metal {
@@ -61,7 +60,7 @@ namespace Metal {
       About.Print();
       for (;;) {
         Console.Write("> ");
-        lines.AppendLine(Console.In.ReadLine());
+          lines.AppendLine(Console.In.ReadLine());
         /// <summary>
         /// Gets the end of line.
         /// </summary>
@@ -112,7 +111,7 @@ namespace Metal {
       hadError = true;
     }
 
-    public static void RuntimeError(RuntimeError error) {
+    public static void RuntimeError(MetalException.Runtime error) {
       if (error.Token == null) {
         Console.WriteLine("Error: {0}", error.Message);
       } else Console.WriteLine("[line {0}] Error: {1}", error.Token.Line, error.Message);

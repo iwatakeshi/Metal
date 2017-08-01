@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using Metal.Intermediate;
 using Metal.FrontEnd.Grammar;
 using Metal.FrontEnd.Interpret;
+using Metal.FrontEnd.Exceptions;
 
-namespace Metal.FrontEnd.Analyze {
+namespace Metal.FrontEnd.Types {
   public abstract class MetalType : Object {
     public interface ICallable {
       int Arity { get; }
@@ -29,12 +30,14 @@ namespace Metal.FrontEnd.Analyze {
 
     public class Function : MetalType, ICallable {
       private Statement.Function declaration;
+      private MetalEnvironment closure;
 
       Func<Interpreter, List<object>, object> callee;
-      internal Function(Statement.Function declaration) {
+      internal Function(Statement.Function declaration, MetalEnvironment closure) {
         this.declaration = declaration;
+        this.closure = closure;
         callee = (interpreter, arguments) => {
-            MetalEnvironment environment = new MetalEnvironment();
+          MetalEnvironment environment = new MetalEnvironment(closure);
             if (declaration != null) {
               for (var i = 0; i < declaration.Parameters.Count; i++) {
                 environment.Define(declaration.Parameters[i].Lexeme, arguments[i]);
@@ -42,9 +45,13 @@ namespace Metal.FrontEnd.Analyze {
             }
 
             if (declaration != null) {
+            try {
               interpreter.ExecuteBlock(declaration.Body, environment);
+            } catch(MetalException.Runtime.Return value) {
+              return value.Value;
             }
-            return null;
+          }
+          return null;
           
         };
       }
@@ -52,7 +59,7 @@ namespace Metal.FrontEnd.Analyze {
       public int Arity { get { return declaration.Parameters.Count; } }
 
       Func<Interpreter, List<object>, object> ICallable.Call => callee;
-
+      public MetalEnvironment Closure => closure;
       public override string ToString() {
         return string.Format("<func {0}>", declaration.Name.Lexeme);
       }

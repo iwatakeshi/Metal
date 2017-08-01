@@ -1,6 +1,6 @@
-﻿using Metal.Diagnostics.Runtime;
+﻿using Metal.FrontEnd.Exceptions;
 using Metal.FrontEnd.Grammar;
-using Metal.FrontEnd.Analyze;
+using Metal.FrontEnd.Types;
 using Metal.FrontEnd.Scan;
 using System;
 using System.Collections.Generic;
@@ -14,10 +14,12 @@ namespace Metal.FrontEnd.Interpret {
     MetalEnvironment globals = new MetalEnvironment();
     MetalEnvironment environment;
 
+    public MetalEnvironment Globals => globals;
+    public MetalEnvironment Environment => environment;
+
     public Interpreter() {
       globals.Define("clock", new MetalType.Callable ((arg1, arg2) => {
-        long milliseconds = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
-        return milliseconds;
+        return (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) / 1000.0;
       }));
       environment = globals;
     }
@@ -38,6 +40,14 @@ namespace Metal.FrontEnd.Interpret {
       return null;
     }
 
+    public object Visit(Statement.Return statement) {
+      object value = null;
+      if (statement.Value != null) {
+        value = Evaluate(statement.Value);
+      }
+      throw new MetalException.Runtime.Return(value);
+    }
+
     public object Visit(Statement.Block statement) {
       ExecuteBlock(statement.Statements, new MetalEnvironment(environment));
       return null;
@@ -54,13 +64,13 @@ namespace Metal.FrontEnd.Interpret {
     }
 
     public object Visit(Statement.Function statement) {
-      MetalType.Function function = new MetalType.Function(statement);
+      MetalType.Function function = new MetalType.Function(statement, environment);
       environment.Define(statement.Name.Lexeme, function);
       return null;
     }
 
     public object Visit(Statement.If statement) {
-      if (IsTruthy(statement.Condition)) {
+      if (IsTruthy(Evaluate(statement.Condition))) {
         Execute(statement.ThenBranch);
       } else if (statement.ElseBranch != null) {
         Execute(statement.ElseBranch);
@@ -219,13 +229,13 @@ namespace Metal.FrontEnd.Interpret {
         arguments.Add(Evaluate(argument));
       }
       if (!(callee is MetalType.ICallable)) {
-        throw new RuntimeError(expression.Parenthesis,
+        throw new MetalException.Runtime(expression.Parenthesis,
         "Can only call functions and classes");
       }
       MetalType.ICallable function = (MetalType.ICallable)callee;
 
       if (arguments.Count != function.Arity) {
-        throw new RuntimeError(expression.Parenthesis,
+        throw new MetalException.Runtime(expression.Parenthesis,
           string.Format("Expected {0} arguments but got {1}.", function.Arity, arguments.Count));
       }
 
@@ -259,7 +269,7 @@ namespace Metal.FrontEnd.Interpret {
         case "-": return a - b;
         case "*": return a * b;
         case "/": {
-            if (b == 0) throw new RuntimeError("Division by zero.");
+            if (b == 0) throw new MetalException.Runtime("Division by zero.");
             return a / b;
           }
       }
@@ -273,7 +283,7 @@ namespace Metal.FrontEnd.Interpret {
         case "-": return a - b;
         case "*": return a * b;
         case "/": {
-            if (Equals(b, 0)) Metal.RuntimeError(new RuntimeError("Division by zero."));
+            if (Equals(b, 0)) Metal.RuntimeError(new MetalException.Runtime("Division by zero."));
             return a / b;
           }
       }
@@ -305,18 +315,18 @@ namespace Metal.FrontEnd.Interpret {
 
     private void CheckNullOperand(Token @operator, object left, object right) {
       if (left == null || right == null) {
-        throw new RuntimeError(@operator, "Operand must not be null.");
+        throw new MetalException.Runtime(@operator, "Operand must not be null.");
       }
     }
 
     private void CheckNumberOperand(Token @operator, object operand) {
       if (operand is int || operand is double) return;
-      throw new RuntimeError(@operator, "Operand must be a number.");
+      throw new MetalException.Runtime(@operator, "Operand must be a number.");
     }
 
     private void CheckNumberOperand(Token @operator, object left, object right) {
       if ((left is int || left is double) && (right is int || right is double)) return;
-      throw new RuntimeError(@operator, "Operands must be numbers.");
+      throw new MetalException.Runtime(@operator, "Operands must be numbers.");
     }
 
     private bool IsTruthy(object @object) {
@@ -339,7 +349,7 @@ namespace Metal.FrontEnd.Interpret {
       try {
         object value = Evaluate(expression);
         return value?.ToString();
-      } catch (RuntimeError error) {
+      } catch (MetalException.Runtime error) {
         Metal.RuntimeError(error);
         return null;
       }
@@ -350,7 +360,7 @@ namespace Metal.FrontEnd.Interpret {
         foreach (var statement in statements) {
           Execute(statement);
         }
-      } catch (RuntimeError error) {
+      } catch (MetalException.Runtime error) {
         Metal.RuntimeError(error);
       }
     }
@@ -362,8 +372,7 @@ namespace Metal.FrontEnd.Interpret {
     }
 
     public void ExecuteBlock(List<Statement> statements, MetalEnvironment environment) {
-      if (environment == null)
-        throw new ArgumentNullException(nameof(environment));
+      if (environment == null) throw new ArgumentNullException(nameof(environment));
       MetalEnvironment previous = this.environment;
       try {
         this.environment = environment;
