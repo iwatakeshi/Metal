@@ -5,7 +5,8 @@ using Metal.FrontEnd.Scan;
 using Metal.FrontEnd.Parse;
 using Metal.Diagnostics.Runtime;
 using Metal.FrontEnd.Interpret;
-using Metal.FrontEnd.Parse.Grammar;
+using Metal.FrontEnd.Grammar;
+using System.Text;
 
 namespace Metal {
 
@@ -13,6 +14,8 @@ namespace Metal {
     private static bool hadError = false;
     private static bool hadRuntimeError = false;
     private static Interpreter interpreter = new Interpreter();
+    private static StringBuilder lines = new StringBuilder();
+
     static void Main(string[] args) {
       foreach (var arg in args) {
         Console.WriteLine(arg);
@@ -58,13 +61,38 @@ namespace Metal {
       About.Print();
       for (;;) {
         Console.Write("> ");
-        var line = Console.In.ReadLine();
-        if (line == "clear") {
+        lines.AppendLine(Console.In.ReadLine());
+        /// <summary>
+        /// Gets the end of line.
+        /// </summary>
+        /// <returns>The end of line.</returns>
+        string GetEndOfLine() {
+          return lines.Length > 1 ? lines[lines.Length - 2].ToString() : "\n";
+        }
+        if (lines.ToString().Contains("clear")) {
           hadError = false;
           interpreter.ResetEnvironment();
           Console.Clear();
           About.Print();
-        } else Run(line, false);
+        } else {
+          var braceCount = 0;
+          if (GetEndOfLine().Equals("{")) {
+            braceCount++;
+
+            while (braceCount != 0) {
+              if (!hadError && !hadRuntimeError) {
+                Console.Write("{0} ", new String('.', braceCount * 3));
+              }
+              var line = Console.In.ReadLine();
+              lines.AppendLine(line);
+              if (line.Contains("{")) braceCount++;
+              else if (line.Contains("}")) braceCount--;
+              //Console.WriteLine(lines.ToString());
+            }
+          }
+          Run(lines.ToString(), false);
+        }
+        lines.Clear();
       }
     }
 

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Metal;
 using Metal.IO;
 using System.Text.RegularExpressions;
 
@@ -96,6 +95,7 @@ namespace Metal.FrontEnd.Scan {
         case '#': while (Current() != '\n' && !IsAtEnd) Next(); break;
         /* Whitespaces */
         case ' ':
+        case '\n':
         case '\r':
         case '\t': break;
         /* String Literals */
