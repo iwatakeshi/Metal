@@ -30,6 +30,7 @@ let ab = a + b;
 let c: double = "0.40";
 
 /* Declaring function */
+
 func isTrue(): bool {
   return true;
 }
