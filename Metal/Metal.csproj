@@ -45,7 +45,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Diagnostics\Runtime\RuntimeError.cs" />
     <Compile Include="FrontEnd\Interpret\Interpreter.cs" />
     <Compile Include="Intermediate\Environment.cs" />
     <Compile Include="Program.cs" />
@@ -57,18 +56,20 @@
     <Compile Include="FrontEnd\Parse\Parser.cs" />
     <Compile Include="FrontEnd\Scan\Scanner.cs" />
     <Compile Include="FrontEnd\Scan\Token.cs" />
-    <Compile Include="FrontEnd\Analyze\MetalType.cs" />
+    <Compile Include="FrontEnd\Types\MetalType.cs" />
     <Compile Include="FrontEnd\Grammar\AST.cs" />
     <Compile Include="FrontEnd\Grammar\Expression.cs" />
     <Compile Include="FrontEnd\Grammar\Statement.cs" />
     <Compile Include="FrontEnd\Grammar\Utilities\ASTPrinter.cs" />
+    <Compile Include="FrontEnd\Exceptions\MetalException.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
     <Folder Include="BackEnd\" />
-    <Folder Include="FrontEnd\Analyze\" />
+    <Folder Include="FrontEnd\Types\" />
     <Folder Include="FrontEnd\Grammar\" />
     <Folder Include="FrontEnd\Parse\" />
+    <Folder Include="FrontEnd\Exceptions\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

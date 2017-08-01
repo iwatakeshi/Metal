@@ -1,11 +1,12 @@
 ﻿using Metal.FrontEnd.Grammar;
 using Metal.FrontEnd.Scan;
-using System;
+using Metal.FrontEnd.Exceptions;
+
 using System.Collections.Generic;
 
 namespace Metal.FrontEnd.Parse {
   public class Parser {
-    private class ParseError : Exception { }
+    
     private List<Token> tokens;
     private int position = 0;
     private Scanner scanner;
@@ -139,9 +140,9 @@ namespace Metal.FrontEnd.Parse {
       throw Error(Current(), message);
     }
 
-    private ParseError Error(Token token, string message) {
+    private MetalException.Parse Error(Token token, string message) {
       Metal.Error(token, message);
-      return new ParseError();
+      return new MetalException.Parse();
     }
 
     /* Statements */
@@ -163,6 +164,9 @@ namespace Metal.FrontEnd.Parse {
           Consume(TokenType.SemiColonPunctuation, "Expect ';' after expression.");
         return print;
       }
+
+      // Parse return statement
+      if (Match((TokenType.Reserved, "return"))) return ParseReturnStatement();
 
       // Parse while statement
       if (Match((TokenType.Reserved, "while"))) return ParseWhileStatement();
@@ -192,6 +196,17 @@ namespace Metal.FrontEnd.Parse {
       return new Statement.Print(value);
     }
 
+    private Statement ParseReturnStatement() {
+      Token keyword = PeekBack();
+      Expression value = null;
+      if (!Check(TokenType.SemiColonPunctuation)) {
+        value = ParseExpression();
+      }
+      if (EnforceGrammarSemiColon)
+        Consume(TokenType.SemiColonPunctuation, "Expect ';' after return value.");
+      return new Statement.Return(keyword, value);
+    }
+
     private List<Statement> ParseBlockStatement() {
       List<Statement> statements = new List<Statement>();
       while (!Check(TokenType.RightBracePunctuation) && !IsAtEnd) {
@@ -206,7 +221,7 @@ namespace Metal.FrontEnd.Parse {
         if (Match((TokenType.Reserved, "func"))) return ParseFuncDeclaration("function");
         if (Match((TokenType.Reserved, "var"))) return ParseVarDeclaration();
         else return ParseStatement();
-      } catch (ParseError) {
+      } catch (MetalException.Parse) {
         Synchronize();
         return null;
       }

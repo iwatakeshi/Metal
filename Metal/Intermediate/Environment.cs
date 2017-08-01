@@ -1,12 +1,12 @@
-﻿using Metal.Diagnostics.Runtime;
+﻿using Metal.FrontEnd.Exceptions;
 using Metal.FrontEnd.Scan;
 using System;
 using System.Collections.Generic;
 
 namespace Metal.Intermediate {
   public class MetalEnvironment {
-    private readonly Dictionary<string, object> values = new Dictionary<string, object>();
-    private readonly MetalEnvironment enclosing;
+    private Dictionary<string, object> values = new Dictionary<string, object>();
+    private MetalEnvironment enclosing;
 
     public MetalEnvironment() {
       this.enclosing = null;
@@ -25,7 +25,7 @@ namespace Metal.Intermediate {
 
       if (enclosing != null) return enclosing.Get(name);
 
-      throw new RuntimeError(name, "Undefined variable '" + name.Lexeme + "'.");
+      throw new MetalException.Runtime(name, "Undefined variable '" + name.Lexeme + "'.");
     }
 
     public void Assign(Token name, object value) {
@@ -37,7 +37,7 @@ namespace Metal.Intermediate {
         enclosing.Assign(name, value);
         return;
       }
-      throw new RuntimeError(name, "Undefined variable '" + name.Lexeme + "'.");
+      throw new MetalException.Runtime(name, "Undefined variable '" + name.Lexeme + "'.");
     }
   }
 }
