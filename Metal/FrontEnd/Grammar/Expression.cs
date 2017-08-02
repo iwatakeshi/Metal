@@ -191,5 +191,18 @@ namespace Metal.FrontEnd.Grammar {
         return visitor.Visit(this);
       }
     }
+
+    //public class Tuple : Expression {
+    //  private List<Expression> values;
+    //  public override Expression Left => null;
+    //  public override Expression Right => null;
+    //  public override Token Operator => null;
+
+    //  public List<Expression> Values => values;
+
+    //  public override T Accept<T>(IVisitor<T> visitor) {
+    //    throw new NotImplementedException();
+    //  }
+    //}
   }
 }

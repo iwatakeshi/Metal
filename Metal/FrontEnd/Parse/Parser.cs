@@ -1,9 +1,8 @@
 ﻿using Metal.FrontEnd.Grammar;
 using Metal.FrontEnd.Scan;
 using Metal.FrontEnd.Exceptions;
-
 using System.Collections.Generic;
-
+using System;
 namespace Metal.FrontEnd.Parse {
   public class Parser {
     
@@ -447,7 +446,8 @@ namespace Metal.FrontEnd.Parse {
           if (parameters.Count >= 10) {
             Error(Peek(), "Cannot have more than 10 parameters.");
           }
-          parameters.Add(Consume(TokenType.Identifier, "Expect parameter name."));
+          parameters.Add(Consume(TokenType.Identifier, 
+                                 string.Format("Expect parameter name but found {0}", Current())));
         } while (Match(TokenType.CommaPunctuation));
       }
 

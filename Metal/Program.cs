@@ -66,6 +66,7 @@ namespace Metal {
         if (lines.ToString().Contains("clear")) {
           hadError = false;
           interpreter.ResetEnvironment();
+          lines.Clear();
           Console.Clear();
           About.Print();
         } else {
