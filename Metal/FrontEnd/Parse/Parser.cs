@@ -71,8 +71,16 @@ namespace Metal.FrontEnd.Parse {
       return tokens[position + 1];
     }
 
+    private Token Peek(int to) {
+      return to + position >= tokens.Count ? tokens[tokens.Count - 1] : tokens[to + position];
+    }
+
     private Token PeekBack() {
       return tokens[position - 1];
+    }
+
+    private Token PeekBack(int to) {
+      return to - position < 0 ? tokens[0] : tokens[to - position];
     }
 
     private void Synchronize() {
@@ -114,26 +122,29 @@ namespace Metal.FrontEnd.Parse {
 
     private bool Check(params TokenType[] types) {
       foreach (var type in types) {
-        if (Check((type, null))) {
-          return true;
-        }
+        if (Check((type, null))) return true;
       }
       return false;
     }
 
+    private bool CheckNext(TokenType type) {
+      if (IsAtEnd) return false;
+      if (Peek().Equals(TokenType.EOF)) return false;
+      return Peek().Equals(type);
+    }
+
+    private bool CheckNext((TokenType, string) type) {
+      return type.Item2 == null ? CheckNext(type.Item1) : Peek().Equals(type.Item1, type.Item2);
+    }
+
     private bool Check((TokenType, string) type) {
       if (IsAtEnd) return false;
-      if (type.Item2 == null) {
-        return type.Item1 == Current().Type;
-      }
-
-      return type.Item1 == Current().Type && type.Item2 == Current().Lexeme;
+      return type.Item2 == null ? Current().Equals(type.Item1) : Current().Equals(type.Item1, type.Item2);
     }
 
     private Token Consume((TokenType, string) type, string message) {
       if (Check(type)) return Next();
       throw Error(Current(), message);
-
     }
     private Token Consume(TokenType type, string message) {
       if (Check((type, null))) return Next();
@@ -218,7 +229,10 @@ namespace Metal.FrontEnd.Parse {
 
     private Statement ParseDeclaration() {
       try {
-        if (Match((TokenType.Reserved, "func"))) return ParseFuncDeclaration("function");
+        if (Check((TokenType.Reserved, "func")) && CheckNext(TokenType.Identifier)) {
+          Consume((TokenType.Reserved, "func"), null);
+          return ParseFuncDeclaration("function");
+        }
         if (Match((TokenType.Reserved, "var"))) return ParseVarDeclaration();
         else return ParseStatement();
       } catch (MetalException.Parse) {
@@ -241,20 +255,7 @@ namespace Metal.FrontEnd.Parse {
 
     public Statement.Function ParseFuncDeclaration(string kind) {
       Token name = Consume(TokenType.Identifier, string.Format("Expect {0} name.", kind));
-      List<Token> parameters = new List<Token>();
-      Consume(TokenType.LeftParenthesisPunctuation, string.Format("Expect '(' after {0} name.", kind));
-      if (!Check(TokenType.RightParenthesisPunctuation)) {
-        do {
-          if (parameters.Capacity >= 10) {
-            Error(Peek(), "Cannot have more than 10 parameters.");
-          }
-          parameters.Add(Consume(TokenType.Identifier, "Expect parameter name."));
-        } while (Match(TokenType.CommaPunctuation));
-      }
-      Consume(TokenType.RightParenthesisPunctuation, "Expect ')' after parameters.");
-      Consume(TokenType.LeftBracePunctuation, string.Format("Expect '{0}' before {1} body", "{", kind));
-      List<Statement> body = ParseBlockStatement();
-      return new Statement.Function(name, parameters, body);
+      return new Statement.Function(name, ParseFuncExpression(kind));
     }
 
     private Statement ParseIfStatement() {
@@ -438,6 +439,24 @@ namespace Metal.FrontEnd.Parse {
       return expression;
     }
 
+    private Expression.Function ParseFuncExpression(string kind) {
+      Consume(TokenType.LeftParenthesisPunctuation, string.Format("Expect '(' after {0} name.", kind));
+      List<Token> parameters = new List<Token>();
+      if (!Check(TokenType.RightParenthesisPunctuation)) {
+        do {
+          if (parameters.Count >= 10) {
+            Error(Peek(), "Cannot have more than 10 parameters.");
+          }
+          parameters.Add(Consume(TokenType.Identifier, "Expect parameter name."));
+        } while (Match(TokenType.CommaPunctuation));
+      }
+
+      Consume(TokenType.RightParenthesisPunctuation, "Expect ')' after parameters.");
+      Consume(TokenType.LeftBracePunctuation, string.Format("Expect '{0}' before {1} body.", "{", kind));
+
+      return new Expression.Function(parameters, ParseBlockStatement());
+    }
+
     private Expression FinishCall(Expression callee) {
       List<Expression> arguments = new List<Expression>();
       if (!Check(TokenType.RightParenthesisPunctuation)) {
@@ -458,7 +477,7 @@ namespace Metal.FrontEnd.Parse {
       if (Match((TokenType.BooleanLiteral, "false"))) return new Expression.Literal(false);
       if (Match((TokenType.BooleanLiteral, "true"))) return new Expression.Literal(true);
       if (Match(TokenType.NullLiteral)) return new Expression.Literal(null);
-
+      if (Match((TokenType.Reserved, "func"))) return ParseFuncExpression("lambda function");
       if (Match(
         TokenType.IntegerLiteral, TokenType.FloatingPointLiteral,
         TokenType.StringLiteral, TokenType.CharacterLiteral

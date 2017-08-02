@@ -68,17 +68,16 @@ namespace Metal.FrontEnd.Grammar {
     public class Function : Statement {
 
       Token name;
-      List<Token> parameters;
-      List<Statement> body;
-      public Token Name => name;
-      public List<Token> Parameters => parameters;
-      public List<Statement> Body => body;
+      private Expression.Function declaration;
 
-      public Function(Token name, List<Token> parameters, List<Statement> body) {
+      public Token Name => name;
+      public Expression.Function Declaration => declaration;
+
+      public Function(Token name, Expression.Function declaration) {
         this.name = name;
-        this.parameters = parameters;
-        this.body = body;
+        this.declaration = declaration;
       }
+
       public override T Accept<T>(IVisitor<T> visitor) {
         return visitor.Visit(this);
       }

@@ -346,23 +346,15 @@ namespace Metal.FrontEnd.Scan {
           return false;
       }
     }
-
-    ///// <summary>
-    ///// Determines whether this instance is reserved.
-    ///// </summary>
-    ///// <returns><c>true</c> if this instance is reserved; otherwise, <c>false</c>.</returns>
-    //public bool IsReserved() {
-    //  return IsReserved(lexeme);
-    //}
-
-    ///// <summary>
-    ///// Determines if the specified key is a reserved word.
-    ///// </summary>
-    ///// <returns><c>true</c> if the specified key is reserved; otherwise, <c>false</c>.</returns>
-    ///// <param name="key">Key.</param>
-    //public static bool IsReserved(string key) {
-    //  return IsOperator(key) || IsPunctuation(key) || IsReserved(key);
-    //}
+    public bool Equals(Token token) {
+      return this.type == token.type && this.lexeme == token.lexeme;
+    }
+    public bool Equals(TokenType type) {
+      return this.type == type;
+    }
+    public bool Equals(TokenType type, string lexeme) {
+      return this.type == type && this.lexeme == lexeme;
+    }
   }
 }
 

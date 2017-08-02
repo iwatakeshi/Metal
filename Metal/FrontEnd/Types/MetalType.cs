@@ -29,11 +29,14 @@ namespace Metal.FrontEnd.Types {
     }
 
     public class Function : MetalType, ICallable {
-      private Statement.Function declaration;
+      private string name;
+      private Expression.Function declaration;
       private MetalEnvironment closure;
 
       Func<Interpreter, List<object>, object> callee;
-      internal Function(Statement.Function declaration, MetalEnvironment closure) {
+
+      public Function(string name, Expression.Function declaration, MetalEnvironment closure) {
+        this.name = name;
         this.declaration = declaration;
         this.closure = closure;
         callee = (interpreter, arguments) => {
@@ -55,13 +58,12 @@ namespace Metal.FrontEnd.Types {
           
         };
       }
-
+      public string Name => name;
       public int Arity { get { return declaration.Parameters.Count; } }
-
       Func<Interpreter, List<object>, object> ICallable.Call => callee;
       public MetalEnvironment Closure => closure;
       public override string ToString() {
-        return string.Format("<func {0}>", declaration.Name.Lexeme);
+        return name == null ? "<func>": string.Format("<func {0}>", name);
       }
     }
   }
