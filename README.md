@@ -29,7 +29,7 @@ let ab = a + b;
 # an error occurs
 let c: double = "0.40";
 
-/* Declaring function */
+/* Functions */
 
 func isTrue(): bool {
   return true;
@@ -48,4 +48,20 @@ for i in 0..5 {
 # while loop
 
 while(i < 5) print(i);
+
+/* Lambda Expressions */
+
+# declare a function that takes
+# a number and modifier as parameters.
+func modify(number, modifier) {
+  return modifier(number)
+}
+
+# declare a lambda function that
+# takes the number as its paramter
+# and return a modified number.
+modify(10, func (number) {
+  return number + number;
+});
+
 ```
