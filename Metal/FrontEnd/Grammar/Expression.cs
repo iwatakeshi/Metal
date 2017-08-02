@@ -1,5 +1,6 @@
 ﻿using Metal.FrontEnd.Scan;
 using System.Collections.Generic;
+using System;
 
 namespace Metal.FrontEnd.Grammar {
   public abstract class Expression : AST<Expression> {
@@ -13,6 +14,7 @@ namespace Metal.FrontEnd.Grammar {
       T Visit(Variable expression);
       T Visit(Logical expression);
       T Visit(Call expression);
+      T Visit(Function expression);
     }
     public abstract T Accept<T>(IVisitor<T> visitor);
 
@@ -164,6 +166,25 @@ namespace Metal.FrontEnd.Grammar {
         this.callee = callee;
         this.parenthesis = parenthesis;
         this.arguments = arguments;
+      }
+
+      public override T Accept<T>(IVisitor<T> visitor) {
+        return visitor.Visit(this);
+      }
+    }
+    public class Function : Expression {
+      private List<Token> parameters;
+      private List<Statement> body;
+
+      public override Expression Left => null;
+      public override Expression Right => null;
+      public override Token Operator => null;
+      public List<Token> Parameters => parameters;
+      public List<Statement> Body => body;
+
+      public Function(List<Token> parameters, List<Statement> body) {
+        this.parameters = parameters;
+        this.body = body;
       }
 
       public override T Accept<T>(IVisitor<T> visitor) {

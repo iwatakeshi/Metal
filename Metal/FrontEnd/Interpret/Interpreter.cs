@@ -18,7 +18,7 @@ namespace Metal.FrontEnd.Interpret {
     public MetalEnvironment Environment => environment;
 
     public Interpreter() {
-      globals.Define("clock", new MetalType.Callable ((arg1, arg2) => {
+      globals.Define("clock", new MetalType.Callable((arg1, arg2) => {
         return (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) / 1000.0;
       }));
       environment = globals;
@@ -64,7 +64,8 @@ namespace Metal.FrontEnd.Interpret {
     }
 
     public object Visit(Statement.Function statement) {
-      MetalType.Function function = new MetalType.Function(statement, environment);
+      MetalType.Function function = new MetalType.Function(
+        statement.Name.Lexeme, statement.Declaration, environment);
       environment.Define(statement.Name.Lexeme, function);
       return null;
     }
@@ -240,6 +241,11 @@ namespace Metal.FrontEnd.Interpret {
       }
 
       return function.Call(this, arguments);
+    }
+
+    public object Visit(Expression.Function expression) {
+      MetalType.Function function = new MetalType.Function(null, expression, environment);
+      return function;
     }
 
     public object Visit(Expression.Variable expression) {
