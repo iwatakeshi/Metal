@@ -128,7 +128,9 @@ expression                  → assignment ;
 
 assignment                  → ( call "." )? IDENTIFIER "=" assignment
 
-                            | logical-or;
+                            | conditinonal;
+
+conditional	            → logical-and "?" expression ":" conditional
 
 logical-or                  → logical-and ( "or" logical-and )* ;
 
