@@ -45,7 +45,7 @@ namespace Metal {
           }
 
         } catch (Exception error) {
-          Console.WriteLine(error.Message);
+            Console.WriteLine(error.Message);
           Console.WriteLine(error);
         }
       } else Console.WriteLine("An error occurred.");
@@ -60,6 +60,7 @@ namespace Metal {
     private static void RunPrompt() {
       About.Print();
       for (;;) {
+        var braceCount = 0;
         Console.Write("> ");
           lines.AppendLine(Console.In.ReadLine());
 
@@ -70,7 +71,7 @@ namespace Metal {
           Console.Clear();
           About.Print();
         } else {
-          var braceCount = 0;
+         
           var line = Regex.Replace(lines.ToString(), @"\t|\n|\r", "");
           if (line[line.Length - 1] == '{') {
             // Initially count all '{' and assume that

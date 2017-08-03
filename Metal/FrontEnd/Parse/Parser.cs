@@ -337,8 +337,8 @@ namespace Metal.FrontEnd.Parse {
     }
 
     private Expression ParseAssignment() {
-      Expression expression = ParseOr();
-      if (Match((TokenType.Operator, "="))) {
+      Expression expression = ParseConditional();
+        if (Match((TokenType.Operator, "="))) {
         Token equals = PeekBack();
         Expression value = ParseAssignment();
         if (expression is Expression.Variable) {
@@ -346,6 +346,17 @@ namespace Metal.FrontEnd.Parse {
           return new Expression.Assign(name, value);
         }
         throw Error(equals, "Invalid assignment target.");
+      }
+      return expression;
+    }
+
+    private Expression ParseConditional() {
+      Expression expression = ParseOr();
+      if (Match((TokenType.Operator, "?"))) {
+        Expression thenBranch = ParseExpression();
+        Consume(TokenType.ColonPunctuation, "Expect ':' after then branch of conditional expression.");
+        Expression elseBranch = ParseConditional();
+        expression = new Expression.Conditional(expression, thenBranch, elseBranch);
       }
       return expression;
     }
