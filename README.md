@@ -64,4 +64,7 @@ modify(10, func (number) {
   return number + number;
 });
 
+/* Conditial operator */
+
+false ? "hello" : "world"
 ```
