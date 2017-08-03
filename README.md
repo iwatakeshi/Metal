@@ -54,17 +54,17 @@ while(i < 5) print(i);
 # declare a function that takes
 # a number and modifier as parameters.
 func modify(number, modifier) {
-  return modifier(number)
+  return modifier(num)
 }
 
 # declare a lambda function that
 # takes the number as its paramter
 # and return a modified number.
-modify(10, func (number) {
-  return number + number;
+modify(10, func (num) {
+  return num + num;
 });
 
 /* Conditial operator */
 
-false ? "hello" : "world"
+var result = false ? "hello" : "world"
 ```
