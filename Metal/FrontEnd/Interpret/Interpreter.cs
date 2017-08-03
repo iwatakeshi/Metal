@@ -120,6 +120,14 @@ namespace Metal.FrontEnd.Interpret {
       return Evaluate(expression.Right);
     }
 
+    public object Visit(Expression.Conditional expression) {
+      if (IsTruthy(Evaluate(expression.Condition))) {
+        return Evaluate(expression.ThenBranch);
+      } else {
+        return Evaluate(expression.ElseBranch);
+      }
+    }
+
     public object Visit(Expression.Literal expression) {
       return expression.Value;
     }

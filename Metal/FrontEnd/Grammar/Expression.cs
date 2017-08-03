@@ -13,6 +13,7 @@ namespace Metal.FrontEnd.Grammar {
       T Visit(Parenthesized expression);
       T Visit(Variable expression);
       T Visit(Logical expression);
+      T Visit(Conditional expression);
       T Visit(Call expression);
       T Visit(Function expression);
     }
@@ -139,6 +140,30 @@ namespace Metal.FrontEnd.Grammar {
         this.left = left;
         this.@operator = @operator;
         this.right = right;
+      }
+
+      public override T Accept<T>(IVisitor<T> visitor) {
+        return visitor.Visit(this);
+      }
+    }
+
+    public class Conditional : Expression {
+      private Expression condition;
+      private Expression thenBranch;
+      private Expression elseBranch;
+
+      public Expression Condition => condition;
+      public Expression ThenBranch => thenBranch;
+      public Expression ElseBranch => elseBranch;
+
+      public override Expression Left => null;
+      public override Expression Right => null;
+      public override Token Operator => null;
+
+      public Conditional(Expression condition, Expression thenBranch, Expression elseBranch) {
+        this.condition = condition;
+        this.thenBranch = thenBranch;
+        this.elseBranch = elseBranch;
       }
 
       public override T Accept<T>(IVisitor<T> visitor) {
