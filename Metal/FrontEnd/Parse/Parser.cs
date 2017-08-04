@@ -523,6 +523,9 @@ namespace Metal.FrontEnd.Parse {
       }
 
       if (Match(TokenType.Identifier)) {
+        if (PeekBack().Equals(TokenType.IntegerLiteral) || PeekBack().Equals(TokenType.FloatingPointLiteral)) {
+          throw Error(Current(), "Unexpected identifier after number literal.");
+        }
         return new Expression.Variable(PeekBack());
       }
 

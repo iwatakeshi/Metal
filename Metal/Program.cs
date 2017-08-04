@@ -65,7 +65,6 @@ namespace Metal {
           lines.AppendLine(Console.In.ReadLine());
 
         if (lines.ToString().Contains("clear")) {
-          hadError = false;
           interpreter.ResetEnvironment();
           lines.Clear();
           Console.Clear();
@@ -81,10 +80,7 @@ namespace Metal {
             }
 
             while (braceCount != 0) {
-              if (!hadError && !hadRuntimeError) {
-                Console.Write("{0} ", new String('.', braceCount * 3));
-              }
-
+              Console.Write("{0} ", new String('.', braceCount * 2));
               line = Console.In.ReadLine();
 
               if (line.Contains("{") || line.Contains("}")) {
@@ -98,9 +94,12 @@ namespace Metal {
             }
           }
           Run(lines.ToString(), false);
+          hadError = false;
         }
         lines.Clear();
+
       }
+
     }
 
     public static void Error(int line, string message) {
