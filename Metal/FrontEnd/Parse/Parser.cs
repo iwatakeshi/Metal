@@ -93,7 +93,7 @@ namespace Metal.FrontEnd.Parse {
           (TokenType.Reserved, "var"), (TokenType.Reserved, "let"),
           (TokenType.Reserved, "for"), (TokenType.Reserved, "if"),
           (TokenType.Reserved, "while"), (TokenType.Reserved, "return"),
-          (TokenType.Reserved, "print"), (TokenType.Reserved, "repeat"),
+          (TokenType.Reserved, "repeat"),
         };
         if (types.Contains((type, lexeme))) return;
         Next();
@@ -166,15 +166,16 @@ namespace Metal.FrontEnd.Parse {
       // Parse if statement
       if (Match((TokenType.Reserved, "if"))) return ParseIfStatement();
 
-      // Parse print statement
-      if (Match((TokenType.Reserved, "print"))) {
-        Consume(TokenType.LeftParenthesisPunctuation, "Expect '(' after print.");
-        var print = ParsePrintStatement();
-        Consume(TokenType.RightParenthesisPunctuation, "Expect ')' after print.");
-        if (EnforceGrammarSemiColon)
-          Consume(TokenType.SemiColonPunctuation, "Expect ';' after expression.");
-        return print;
-      }
+      //// Parse print statement
+      //if (Match((TokenType.Reserved, "print"))) {
+        //Consume(TokenType.LeftParenthesisPunctuation, "Expect '(' after print.");
+        //var print = ParsePrintStatement();
+        //Consume(TokenType.RightParenthesisPunctuation, "Expect ')' after print.");
+        //if (Match(TokenType.SemiColonPunctuation)) {};
+        //if (EnforceGrammarSemiColon)
+        //  Consume(TokenType.SemiColonPunctuation, "Expect ';' after expression.");
+        //return print;
+      //}
 
       // Parse return statement
       if (Match((TokenType.Reserved, "return"))) return ParseReturnStatement();
@@ -200,15 +201,14 @@ namespace Metal.FrontEnd.Parse {
 
     private Statement ParseExpressionStatement() {
       Expression expr = ParseExpression();
-      if (EnforceGrammarSemiColon)
-        Consume(TokenType.SemiColonPunctuation, "Expect ';' after expression.");
+      if (Match(TokenType.SemiColonPunctuation)) {}
       foundExpression = true;
       return new Statement.Expr(expr);
     }
-    private Statement ParsePrintStatement() {
-      Expression value = ParseExpression();
-      return new Statement.Print(value);
-    }
+    //private Statement ParsePrintStatement() {
+    //  Expression value = ParseExpression();
+    //  return new Statement.Print(value);
+    //}
 
     private Statement ParseReturnStatement() {
       Token keyword = PeekBack();
@@ -216,8 +216,7 @@ namespace Metal.FrontEnd.Parse {
       if (!Check(TokenType.SemiColonPunctuation)) {
         value = ParseExpression();
       }
-      if (EnforceGrammarSemiColon)
-        Consume(TokenType.SemiColonPunctuation, "Expect ';' after return value.");
+      if (Match(TokenType.SemiColonPunctuation)) {}
       return new Statement.Return(keyword, value);
     }
 
@@ -257,8 +256,7 @@ namespace Metal.FrontEnd.Parse {
       if (Match((TokenType.Operator, "="))) {
         initializer = ParseExpression();
       }
-      if (EnforceGrammarSemiColon)
-        Consume(TokenType.SemiColonPunctuation, "Expect ';' after variable declaration.");
+      if (Match(TokenType.SemiColonPunctuation)) {}
       return new Statement.Var(name, initializer);
     }
 
@@ -348,8 +346,7 @@ namespace Metal.FrontEnd.Parse {
           Consume(TokenType.RightParenthesisPunctuation, "Expect ')' after condition.");
         }
         var end = repeatWhileParenthesisEnabled ? "')'" : "condition";
-        if (EnforceGrammarSemiColon)
-          Consume(TokenType.SemiColonPunctuation, "Expect ';' after " + end + ".");
+        if (Match(TokenType.SemiColonPunctuation)) {}
         return new Statement.RepeatWhile(condition, body);
       } finally {
         loopDepth--;

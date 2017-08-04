@@ -136,8 +136,6 @@ namespace Metal.FrontEnd.Scan {
         case "while":
         case "repeat":
         case "yield":
-        /* Temporary statements */
-        case "print":
         /* Reserved words used in expressions and types */
         case "catch":
         case "false":

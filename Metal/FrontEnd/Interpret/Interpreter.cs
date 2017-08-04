@@ -18,14 +18,26 @@ namespace Metal.FrontEnd.Interpret {
     public MetalEnvironment Environment => environment;
 
     public Interpreter() {
-      globals.Define("clock", new MetalType.Callable((arg1, arg2) => {
-        return (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) / 1000.0;
-      }));
+
+      DefineGlobals();
       environment = globals;
     }
 
     public void ResetEnvironment() {
-      environment = new MetalEnvironment();
+      globals = new MetalEnvironment();
+      DefineGlobals();
+      environment = globals;
+    }
+
+    private void DefineGlobals() {
+      globals.Define("print", new MetalType.Callable(1, (arg1, arg2) => {
+        Console.WriteLine(arg2[0]);
+        return null;
+      }));
+
+      globals.Define("clock", new MetalType.Callable((arg1, arg2) => {
+        return (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) / 1000.0;
+      }));
     }
 
 
@@ -34,11 +46,11 @@ namespace Metal.FrontEnd.Interpret {
       Evaluate(statement.Expression);
       return null;
     }
-    public object Visit(Statement.Print statement) {
-      Object value = Evaluate(statement.Expression);
-      Console.WriteLine(value ?? "null");
-      return null;
-    }
+    //public object Visit(Statement.Print statement) {
+    //  Object value = Evaluate(statement.Expression);
+    //  Console.WriteLine(value ?? "null");
+    //  return null;
+    //}
 
     public object Visit(Statement.Return statement) {
       object value = null;
