@@ -48,6 +48,10 @@ namespace Metal.FrontEnd.Interpret {
       throw new MetalException.Runtime.Return(value);
     }
 
+    public object Visit(Statement.Break statement) {
+      throw new MetalException.Runtime.Break();
+    }
+
     public object Visit(Statement.Block statement) {
       ExecuteBlock(statement.Statements, new MetalEnvironment(environment));
       return null;
@@ -80,25 +84,32 @@ namespace Metal.FrontEnd.Interpret {
     }
 
     public object Visit(Statement.While statement) {
-      while (IsTruthy(Evaluate(statement.Condition))) {
-        Execute(statement.Body);
-      }
+      try {
+        while (IsTruthy(Evaluate(statement.Condition))) {
+          Execute(statement.Body);
+        }
+      } catch(MetalException.Runtime.Break) { /* Do nothing */ }
+
       return null;
     }
 
     public object Visit(Statement.RepeatWhile statement) {
-      do {
-        Execute(statement.Body);
-      } while (IsTruthy(Evaluate(statement.Condition)));
+      try {
+        do {
+          Execute(statement.Body);
+        } while (IsTruthy(Evaluate(statement.Condition)));
+      } catch (MetalException.Runtime.Break) { /* Do nothing */ }
       return null;
     }
 
     public object Visit(Statement.For statement) {
-      environment.Define(statement.Name.Lexeme, null);
-      foreach (var value in (IEnumerable)Evaluate(statement.Range)) {
-        environment.Assign(statement.Name, value);
-        Execute(statement.Body);
-      }
+      try {
+        environment.Define(statement.Name.Lexeme, null);
+        foreach (var value in (IEnumerable)Evaluate(statement.Expression)) {
+          environment.Assign(statement.Name, value);
+          Execute(statement.Body);
+        }
+      } catch (MetalException.Runtime.Break) { /* Do nothing */ }
       return null;
     }
 

@@ -33,6 +33,10 @@ namespace Metal.FrontEnd.Exceptions {
 
         public Return(Token token, string message) : base(token, message) { }
       }
+
+      public class Break : Runtime {
+
+      }
     }
   }
 

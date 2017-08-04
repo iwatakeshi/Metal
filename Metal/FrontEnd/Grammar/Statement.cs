@@ -14,6 +14,7 @@ namespace Metal.FrontEnd.Grammar {
       T Visit(While statement);
       T Visit(RepeatWhile statement);
       T Visit(Return statement);
+      T Visit(Break statement);
     }
     public abstract T Accept<T>(IVisitor<T> visitor);
 
@@ -117,17 +118,17 @@ namespace Metal.FrontEnd.Grammar {
 
     public class For : Statement {
       private Token name;
-      private Expression range;
+      private Expression expression;
       private Statement body;
 
       public Token Name => name;
-      public Expression Range => range;
+      public Expression Expression => expression;
       public Statement Body => body;
 
 
-      public For(Token name, Expression range, Statement body) {
+      public For(Token name, Expression expression, Statement body) {
         this.name = name;
-        this.range = range;
+        this.expression = expression;
         this.body = body;
       }
 
@@ -168,6 +169,12 @@ namespace Metal.FrontEnd.Grammar {
         return visitor.Visit(this);
       }
     }
-    
+
+    public class Break : Statement {
+      public override T Accept<T>(IVisitor<T> visitor) {
+        return visitor.Visit(this);
+      }
+    }
+
   }
 }
