@@ -9,6 +9,7 @@ namespace Metal.FrontEnd.Parse {
     private List<Token> tokens;
     private int position = 0;
     private Scanner scanner;
+    private int loopDepth = 0;
     private bool allowExpression = true;
     private bool foundExpression = false;
     private bool enforceGrammarSemiColon = false;
@@ -178,6 +179,9 @@ namespace Metal.FrontEnd.Parse {
       // Parse return statement
       if (Match((TokenType.Reserved, "return"))) return ParseReturnStatement();
 
+      // Parse break statement
+      if (Match((TokenType.Reserved, "break"))) return ParseBreakStatement();
+
       // Parse while statement
       if (Match((TokenType.Reserved, "while"))) return ParseWhileStatement();
 
@@ -215,6 +219,13 @@ namespace Metal.FrontEnd.Parse {
       if (EnforceGrammarSemiColon)
         Consume(TokenType.SemiColonPunctuation, "Expect ';' after return value.");
       return new Statement.Return(keyword, value);
+    }
+
+    private Statement ParseBreakStatement() {
+      if (loopDepth == 0) {
+        Error(PeekBack(), "Must be inside a loop to use 'break'.");
+      }
+      return new Statement.Break();
     }
 
     private List<Statement> ParseBlockStatement() {
@@ -279,55 +290,70 @@ namespace Metal.FrontEnd.Parse {
     }
 
     private Statement ParseForStatement() {
-      bool forParenthesisEnabled = false;
-      if (Check(TokenType.LeftParenthesisPunctuation)) {
-        forParenthesisEnabled = true;
-        Next();
-      }
-      var rhs = forParenthesisEnabled ? "'('" : "'for'";
-      Token name = Consume(TokenType.Identifier, "Expect variable name after " + rhs + ".");
-      Consume((TokenType.Operator, "in"), "Expect 'in' after variable name.");
-      Expression range = ParseExpression();
-      if (forParenthesisEnabled) {
-        Consume(TokenType.RightParenthesisPunctuation, "Expect ')' after for clauses.");
-      }
+      try {
+        loopDepth++;
+        bool forParenthesisEnabled = false;
+        if (Check(TokenType.LeftParenthesisPunctuation)) {
+          forParenthesisEnabled = true;
+          Next();
+        }
+        var rhs = forParenthesisEnabled ? "'('" : "'for'";
+        Token name = Consume(TokenType.Identifier, "Expect variable name after " + rhs + ".");
+        Consume((TokenType.Operator, "in"), "Expect 'in' after variable name.");
+        Expression expression = ParseExpression();
+        if (forParenthesisEnabled) {
+          Consume(TokenType.RightParenthesisPunctuation, "Expect ')' after for clauses.");
+        }
 
-      Statement body = ParseStatement();
-      return new Statement.For(name, range, body);
+        Statement body = ParseStatement();
+        return new Statement.For(name, expression, body);
+      } finally {
+        loopDepth--;
+      }
     }
 
     private Statement ParseWhileStatement() {
-      var whileParenthesisEnabled = false;
-      if (Check(TokenType.LeftParenthesisPunctuation)) {
-        whileParenthesisEnabled = true;
-        Next();
+      try {
+        loopDepth++;
+        var whileParenthesisEnabled = false;
+        if (Check(TokenType.LeftParenthesisPunctuation)) {
+          whileParenthesisEnabled = true;
+          Next();
+        }
+        Expression condition = ParseExpression();
+        if (whileParenthesisEnabled) {
+          Consume(TokenType.RightParenthesisPunctuation, "Expect ')' after condition.");
+        }
+        Statement body = ParseStatement();
+        return new Statement.While(condition, body);
+      } finally {
+        loopDepth--;
       }
-      Expression condition = ParseExpression();
-      if (whileParenthesisEnabled) {
-        Consume(TokenType.RightParenthesisPunctuation, "Expect ')' after condition.");
-      }
-      Statement body = ParseStatement();
-      return new Statement.While(condition, body);
     }
 
     private Statement ParseRepeatWhileStatement() {
-      var repeatWhileParenthesisEnabled = false;
-      Statement body = ParseStatement();
+      try {
+        loopDepth++;
+        var repeatWhileParenthesisEnabled = false;
+        Statement body = ParseStatement();
 
-      Consume((TokenType.Reserved, "while"), "Expect 'while' after statement.");
+        Consume((TokenType.Reserved, "while"), "Expect 'while' after statement.");
 
-      if (Check(TokenType.LeftParenthesisPunctuation)) {
-        repeatWhileParenthesisEnabled = true;
-        Next();
+        if (Check(TokenType.LeftParenthesisPunctuation)) {
+          repeatWhileParenthesisEnabled = true;
+          Next();
+        }
+        Expression condition = ParseExpression();
+        if (repeatWhileParenthesisEnabled) {
+          Consume(TokenType.RightParenthesisPunctuation, "Expect ')' after condition.");
+        }
+        var end = repeatWhileParenthesisEnabled ? "')'" : "condition";
+        if (EnforceGrammarSemiColon)
+          Consume(TokenType.SemiColonPunctuation, "Expect ';' after " + end + ".");
+        return new Statement.RepeatWhile(condition, body);
+      } finally {
+        loopDepth--;
       }
-      Expression condition = ParseExpression();
-      if (repeatWhileParenthesisEnabled) {
-        Consume(TokenType.RightParenthesisPunctuation, "Expect ')' after condition.");
-      }
-      var end = repeatWhileParenthesisEnabled ? "')'" : "condition";
-      if (EnforceGrammarSemiColon)
-        Consume(TokenType.SemiColonPunctuation, "Expect ';' after " + end + ".");
-      return new Statement.RepeatWhile(condition, body);
     }
 
     /* Expressions */
