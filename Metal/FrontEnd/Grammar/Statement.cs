@@ -6,7 +6,6 @@ namespace Metal.FrontEnd.Grammar {
     public interface IVisitor<T> {
       T Visit(Block statement);
       T Visit(Expr statement);
-      //T Visit(Print statement);
       T Visit(Var statement);
       T Visit(Function statement);
       T Visit(If statement);
@@ -40,17 +39,6 @@ namespace Metal.FrontEnd.Grammar {
         return visitor.Visit(this);
       }
     }
-
-    //public class Print : Statement {
-    //  Expression expression;
-    //  public Expression Expression => expression;
-    //  public Print(Expression expression) {
-    //    this.expression = expression;
-    //  }
-    //  public override T Accept<T>(IVisitor<T> visitor) {
-    //    return visitor.Visit(this);
-    //  }
-    //}
 
     public class Var : Statement {
       private Token name;

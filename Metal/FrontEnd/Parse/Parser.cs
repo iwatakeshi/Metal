@@ -166,17 +166,6 @@ namespace Metal.FrontEnd.Parse {
       // Parse if statement
       if (Match((TokenType.Reserved, "if"))) return ParseIfStatement();
 
-      //// Parse print statement
-      //if (Match((TokenType.Reserved, "print"))) {
-        //Consume(TokenType.LeftParenthesisPunctuation, "Expect '(' after print.");
-        //var print = ParsePrintStatement();
-        //Consume(TokenType.RightParenthesisPunctuation, "Expect ')' after print.");
-        //if (Match(TokenType.SemiColonPunctuation)) {};
-        //if (EnforceGrammarSemiColon)
-        //  Consume(TokenType.SemiColonPunctuation, "Expect ';' after expression.");
-        //return print;
-      //}
-
       // Parse return statement
       if (Match((TokenType.Reserved, "return"))) return ParseReturnStatement();
 
@@ -205,10 +194,6 @@ namespace Metal.FrontEnd.Parse {
       foundExpression = true;
       return new Statement.Expr(expr);
     }
-    //private Statement ParsePrintStatement() {
-    //  Expression value = ParseExpression();
-    //  return new Statement.Print(value);
-    //}
 
     private Statement ParseReturnStatement() {
       Token keyword = PeekBack();
@@ -513,14 +498,13 @@ namespace Metal.FrontEnd.Parse {
       if (Match(TokenType.NullLiteral)) return new Expression.Literal(null);
       if (Match((TokenType.Reserved, "func"))) return ParseFuncExpression("lambda function");
       if (Match(
-        TokenType.IntegerLiteral, TokenType.FloatingPointLiteral,
-        TokenType.StringLiteral, TokenType.CharacterLiteral
+        TokenType.NumberLiteral, TokenType.StringLiteral, TokenType.CharacterLiteral
       )) {
         return new Expression.Literal(PeekBack().Literal);
       }
 
       if (Match(TokenType.Identifier)) {
-        if (PeekBack().Equals(TokenType.IntegerLiteral) || PeekBack().Equals(TokenType.FloatingPointLiteral)) {
+        if (PeekBack().Equals(TokenType.NumberLiteral) || PeekBack().Equals(TokenType.FloatingPointLiteral)) {
           throw Error(Current(), "Unexpected identifier after number literal.");
         }
         return new Expression.Variable(PeekBack());

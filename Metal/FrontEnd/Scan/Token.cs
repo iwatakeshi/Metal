@@ -9,7 +9,7 @@ namespace Metal.FrontEnd.Scan {
     // "Hello, World!"
     StringLiteral,
     // 12
-    IntegerLiteral,
+    NumberLiteral,
     // 3.14
     FloatingPointLiteral,
     // true

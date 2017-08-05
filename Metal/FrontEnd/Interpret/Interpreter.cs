@@ -38,6 +38,10 @@ namespace Metal.FrontEnd.Interpret {
       globals.Define("clock", new MetalType.Callable((arg1, arg2) => {
         return (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) / 1000.0;
       }));
+
+      globals.Define("typeof", new MetalType.Callable(1, (arg1, arg2) => {
+        return ((MetalType)MetalType.DeduceType(arg2[0])).TypeName;
+      }));
     }
 
 
@@ -100,7 +104,7 @@ namespace Metal.FrontEnd.Interpret {
         while (IsTruthy(Evaluate(statement.Condition))) {
           Execute(statement.Body);
         }
-      } catch(MetalException.Runtime.Break) { /* Do nothing */ }
+      } catch (MetalException.Runtime.Break) { /* Do nothing */ }
 
       return null;
     }
@@ -185,61 +189,49 @@ namespace Metal.FrontEnd.Interpret {
           return left.ToString() + right.ToString();
         }
 
-        if (left is int && right is int) {
-          return ApplyIntOperatorToOperand(ConvertObjectToInt(left, right), "+");
-        }
-
-        if ((left is int || left is double) && (right is int || right is double)) {
-          return ApplyDoubleOperatorToOperand(ConvertObjectToDouble(left, right), "+");
+        if ((left is int || right is int) || (left is double || right is double)) {
+          return new MetalType.Number(left) + new MetalType.Number(right);
         }
       }
 
       // '-' operator
       if (expression.Operator.IsOperator("-")) {
-        if (left is int && right is int) {
-          return ApplyIntOperatorToOperand(ConvertObjectToInt(left, right), "-");
+        if ((left is int || right is int) || (left is double || right is double)) {
+          return new MetalType.Number(left) - new MetalType.Number(right);
         }
-        return ApplyDoubleOperatorToOperand(ConvertObjectToInt(left, right), "-");
       }
 
       // '*' operator
       if (expression.Operator.IsOperator("*")) {
 
-        if (left is int && right is int) {
-          return ApplyIntOperatorToOperand(ConvertObjectToInt(left, right), "*");
-        }
-
-        if ((left is int || left is double) && (right is int || right is double)) {
-          return ApplyDoubleOperatorToOperand(ConvertObjectToInt(left, right), "*");
+        if ((left is int || right is int) || (left is double || right is double)) {
+          return new MetalType.Number(left) * new MetalType.Number(right);
         }
       }
 
       // '/' operator
       if (expression.Operator.IsOperator("/")) {
-        if (left is int && right is int) {
-          return ApplyIntOperatorToOperand(ConvertObjectToInt(left, right), "/");
-        }
-        if ((left is int || left is double) && (right is int || right is double)) {
-          return ApplyDoubleOperatorToOperand(ConvertObjectToDouble(left, right), "/");
+        if ((left is int || right is int) || (left is double || right is double)) {
+          return new MetalType.Number(left) / new MetalType.Number(right);
         }
       }
 
       // '>', '>=', '<', '<=' operators
       if (expression.Operator.IsOperator(">")) {
         CheckNumberOperand(expression.Operator, left, right);
-        return ApplyBoolOperatorToOperand(ConvertObjectToDouble(left, right), ">");
+        return new MetalType.Number(left) > new MetalType.Number(right);
       }
       if (expression.Operator.IsOperator(">=")) {
         CheckNumberOperand(expression.Operator, left, right);
-        return ApplyBoolOperatorToOperand(ConvertObjectToDouble(left, right), ">=");
+        return new MetalType.Number(left) >= new MetalType.Number(right);
       }
       if (expression.Operator.IsOperator("<")) {
         CheckNumberOperand(expression.Operator, left, right);
-        return ApplyBoolOperatorToOperand(ConvertObjectToDouble(left, right), "<");
+        return new MetalType.Number(left) < new MetalType.Number(right);
       }
       if (expression.Operator.IsOperator("<=")) {
         CheckNumberOperand(expression.Operator, left, right);
-        return ApplyBoolOperatorToOperand(ConvertObjectToDouble(left, right), "<=");
+        return new MetalType.Number(left) <= new MetalType.Number(right);
       }
 
       // Check equality

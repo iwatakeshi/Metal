@@ -185,7 +185,6 @@ namespace Metal.FrontEnd.Scan {
         while (Char.IsDigit(Current())) Next();
       }
       string lexeme = source.File.Substring(Start, End);
-      TokenType type = lexeme.Contains(".") ? TokenType.FloatingPointLiteral : TokenType.IntegerLiteral;
       object literal = null;
       if (lexeme.Contains(".")) {
         Double.TryParse(lexeme, out var number);
@@ -194,7 +193,7 @@ namespace Metal.FrontEnd.Scan {
         Int32.TryParse(lexeme, out var number);
         literal = number; 
       }
-      return AddToken(type, literal);
+      return AddToken(TokenType.NumberLiteral, literal);
     }
 
     private Token ScanIdentifier() {
