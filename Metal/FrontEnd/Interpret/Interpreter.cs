@@ -167,6 +167,7 @@ namespace Metal.FrontEnd.Interpret {
       object right = Evaluate(expression.Right);
       if (expression.Operator.IsOperator("-")) {
         CheckNumberOperand(expression.Operator, right);
+        if (right is MetalType.Number) return -(MetalType.Number)right;
         if (right is double) return -(double)right;
         else return -(int)right;
       }
@@ -191,6 +192,10 @@ namespace Metal.FrontEnd.Interpret {
 
         if ((left is int || right is int) || (left is double || right is double)) {
           return new MetalType.Number(left) + new MetalType.Number(right);
+        }
+
+        if((left is MetalType.Number) && (right is MetalType.Number)) {
+          return ((MetalType.Number)left) + ((MetalType.Number)right);
         }
       }
 
@@ -350,24 +355,27 @@ namespace Metal.FrontEnd.Interpret {
 
     private void CheckNumberOperand(Token @operator, object operand) {
       if (operand is int || operand is double) return;
+      if (operand is MetalType.Number) return;
       throw new MetalException.Runtime(@operator, "Operand must be a number.");
     }
 
     private void CheckNumberOperand(Token @operator, object left, object right) {
+      if (left is MetalType.Number || right is MetalType.Number) return;
       if ((left is int || left is double) && (right is int || right is double)) return;
       throw new MetalException.Runtime(@operator, "Operands must be numbers.");
     }
 
     private bool IsTruthy(object @object) {
       if (@object == null) return false;
-      if (@object is Boolean) return (bool)@object;
+      if (@object is bool) return (bool)@object;
+      if (@object is MetalType.Boolean) return ((MetalType.Boolean)@object).Value;
       return true;
     }
 
-    private bool IsEqual(object a, object b) {
-      if (a == null && b == null) return true;
-      if (a == null) return false;
-      return a.Equals(b);
+    private MetalType.Boolean IsEqual(object a, object b) {
+      if (a == null && b == null) return new MetalType.Boolean(true);
+      if (a == null) return new MetalType.Boolean(false);
+      return new MetalType.Boolean(a.Equals(b));
     }
 
     private object Evaluate(Expression expression) {

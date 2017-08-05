@@ -71,7 +71,10 @@ namespace Metal.FrontEnd.Types {
       public override string TypeName => "function";
     }
 
+
+#pragma warning disable CS0661 // Type defines operator == or operator != but does not override Object.GetHashCode()
     public class Number : MetalType {
+#pragma warning restore CS0661 // Type defines operator == or operator != but does not override Object.GetHashCode()
       private object value;
       public object Value => value;
 
@@ -79,93 +82,274 @@ namespace Metal.FrontEnd.Types {
         this.value = value;
       }
 
+      /* Negation */
+      public static Number operator -(Number self) {
+        if (self.Value is int) {
+          int.TryParse(self.ToString(), out int a);
+          return new Number(-a);
+        }
+        double.TryParse(self.ToString(), out double b);
+        return new Number(-b);
+      }
+
+      /* Addition */
       public static Number operator +(Number left, Number right) {
         if (left.Value is int && right.Value is int) {
-          int.TryParse(left.ToString(), out int a);
-          int.TryParse(right.ToString(), out int b);
+          int.TryParse(left.Value.ToString(), out int a);
+          int.TryParse(right.Value.ToString(), out int b);
           return new Number(a + b);
         }
-        double.TryParse(left.ToString(), out double c);
-        double.TryParse(left.ToString(), out double d);
+        double.TryParse(left.Value.ToString(), out double c);
+        double.TryParse(right.Value.ToString(), out double d);
         return new Number(c + d);
       }
 
-      public static Number operator -(Number left, Number right) {
-        if (left.Value is int && right.Value is int) {
-          int.TryParse(left.ToString(), out int a);
-          int.TryParse(right.ToString(), out int b);
-          return new Number(a - b);
-        }
-        double.TryParse(left.ToString(), out double c);
-        double.TryParse(left.ToString(), out double d);
-        return new Number(c - d);
+      public static Number operator +(Number left, int right) {
+        return left + new Number(right);
       }
 
+      public static Number operator +(int left, Number right) {
+        return new Number(left) + right;
+      }
+
+      public static Number operator +(Number left, double right) {
+       return left + new Number(right);
+      }
+
+      public static Number operator +(double left, Number right) {
+        return new Number(left) + right;
+      }
+
+      /* Subtraction */
+      public static Number operator -(Number left, Number right) {
+        if (left.Value is int && right.Value is int) {
+          int.TryParse(left.Value.ToString(), out int a);
+          int.TryParse(right.Value.ToString(), out int b);
+          return new Number(a - b);
+        }
+        double.TryParse(left.Value.ToString(), out double c);
+        double.TryParse(right.Value.ToString(), out double d);
+        return new Number(c - d);
+      }
+      public static Number operator -(Number left, int right) {
+        return left - new Number(right);
+      }
+
+      public static Number operator -(int left, Number right) {
+        return new Number(left) - right;
+      }
+
+      public static Number operator -(Number left, double right) {
+        return left - new Number(right);
+      }
+
+      public static Number operator -(double left, Number right) {
+        return new Number(left) - right;
+      }
+
+      /* Multiplication */
       public static Number operator *(Number left, Number right) {
         if (left.Value is int && right.Value is int) {
-          int.TryParse(left.ToString(), out int a);
-          int.TryParse(right.ToString(), out int b);
+          int.TryParse(left.Value.ToString(), out int a);
+          int.TryParse(right.Value.ToString(), out int b);
           return new Number(a * b);
         }
-        double.TryParse(left.ToString(), out double c);
-        double.TryParse(left.ToString(), out double d);
+        double.TryParse(left.Value.ToString(), out double c);
+        double.TryParse(right.Value.ToString(), out double d);
         return new Number(c * d);
       }
 
+      public static Number operator *(Number left, int right) {
+        return left * new Number(right);
+      }
+
+      public static Number operator *(int left, Number right) {
+        return new Number(left) * right;
+      }
+
+      public static Number operator *(Number left, double right) {
+        return left * new Number(right);
+      }
+
+      public static Number operator *(double left, Number right) {
+        return new Number(left) * right;
+      }
+
+      /* Division */
       public static Number operator /(Number left, Number right) {
         if (left.Value is int && right.Value is int) {
-          int.TryParse(left.ToString(), out int a);
-          int.TryParse(right.ToString(), out int b);
+          int.TryParse(left.Value.ToString(), out int a);
+          int.TryParse(right.Value.ToString(), out int b);
           return new Number(a / b);
         }
-        double.TryParse(left.ToString(), out double c);
-        double.TryParse(left.ToString(), out double d);
+        double.TryParse(left.Value.ToString(), out double c);
+        double.TryParse(left.Value.ToString(), out double d);
         return new Number(c / d);
       }
+      public static Number operator /(Number left, int right) {
+        return left / new Number(right);
+      }
 
+      public static Number operator /(int left, Number right) {
+        return new Number(left) / right;
+      }
+
+      public static Number operator /(Number left, double right) {
+        return left / new Number(right);
+      }
+
+      public static Number operator /(double left, Number right) {
+        return new Number(left) / right;
+      }
+
+      /* Greater than */
       public static Boolean operator >(Number left, Number right) {
-        double.TryParse(left.ToString(), out double a);
-        double.TryParse(left.ToString(), out double b);
+        double.TryParse(left.Value.ToString(), out double a);
+        double.TryParse(right.Value.ToString(), out double b);
         return new Boolean(a > b);
       }
-
-      public static Boolean operator <(Number left, Number right) {
-        double.TryParse(left.ToString(), out double a);
-        double.TryParse(left.ToString(), out double b);
-        return new Boolean(a < b);
+      public static Boolean operator >(Number left, int right) {
+        return left > new Number(right);
       }
 
+      public static Boolean operator >(int left, Number right) {
+        return new Number(left) > right;
+      }
+
+      public static Boolean operator >(Number left, double right) {
+        return left > new Number(right);
+      }
+
+      public static Boolean operator >(double left, Number right) {
+        return new Number(left) > right;
+      }
+
+      /* Less than */
+      public static Boolean operator <(Number left, Number right) {
+        double.TryParse(left.Value.ToString(), out double a);
+        double.TryParse(right.Value.ToString(), out double b);
+        return new Boolean(a < b);
+      }
+      public static Boolean operator <(Number left, int right) {
+        return left < new Number(right);
+      }
+
+      public static Boolean operator <(int left, Number right) {
+        return new Number(left) < right;
+      }
+
+      public static Boolean operator <(Number left, double right) {
+        return left < new Number(right);
+      }
+
+      public static Boolean operator <(double left, Number right) {
+        return new Number(left) < right;
+      }
+
+      /* Greater than, equal to*/
       public static Boolean operator >=(Number left, Number right) {
-        double.TryParse(left.ToString(), out double a);
-        double.TryParse(left.ToString(), out double b);
+        double.TryParse(left.Value.ToString(), out double a);
+        double.TryParse(right.Value.ToString(), out double b);
         return new Boolean(a >= b);
       }
 
+      public static Boolean operator >=(Number left, int right) {
+        return left >= new Number(right);
+      }
+
+      public static Boolean operator >=(int left, Number right) {
+        return new Number(left) >= right;
+      }
+
+      public static Boolean operator >=(Number left, double right) {
+        return left >= new Number(right);
+      }
+
+      public static Boolean operator >=(double left, Number right) {
+        return new Number(left) >= right;
+      }
+
+      /* Less than, equal to */
       public static Boolean operator <=(Number left, Number right) {
-        double.TryParse(left.ToString(), out double a);
-        double.TryParse(left.ToString(), out double b);
+        double.TryParse(left.Value.ToString(), out double a);
+        double.TryParse(right.Value.ToString(), out double b);
         return new Boolean(a <= b);
       }
 
+      public static Boolean operator <=(Number left, int right) {
+        return left <= new Number(right);
+      }
+
+      public static Boolean operator <=(int left, Number right) {
+        return new Number(left) <= right;
+      }
+
+      public static Boolean operator <=(Number left, double right) {
+        return left <= new Number(right);
+      }
+
+      public static Boolean operator <=(double left, Number right) {
+        return new Number(left) <= right;
+      }
+
+      /* Equal to */
       public static Boolean operator ==(Number left, Number right) {
-        double.TryParse(left.ToString(), out double a);
-        double.TryParse(left.ToString(), out double b);
+        double.TryParse(left.Value.ToString(), out double a);
+        double.TryParse(right.Value.ToString(), out double b);
         return new Boolean(a == b);
       }
 
+      public static Boolean operator ==(Number left, int right) {
+        return left == new Number(right);
+      }
+
+      public static Boolean operator ==(int left, Number right) {
+        return new Number(left) == right;
+      }
+
+      public static Boolean operator ==(Number left, double right) {
+        return left == new Number(right);
+      }
+
+      public static Boolean operator ==(double left, Number right) {
+        return new Number(left) == right;
+      }
+
+      /* Not equal to */
       public static Boolean operator !=(Number left, Number right) {
-        double.TryParse(left.ToString(), out double a);
-        double.TryParse(left.ToString(), out double b);
+        double.TryParse(left.Value.ToString(), out double a);
+        double.TryParse(right.Value.ToString(), out double b);
         return new Boolean(a != b);
       }
 
+      public static Boolean operator !=(Number left, int right) {
+        return left != new Number(right);
+      }
+
+      public static Boolean operator !=(int left, Number right) {
+        return new Number(left) != right;
+      }
+
+      public static Boolean operator !=(Number left, double right) {
+        return left != new Number(right);
+      }
+
+      public static Boolean operator !=(double left, Number right) {
+        return new Number(left) != right;
+      }
+
+#pragma warning disable CS0114 // Member hides inherited member; missing override keyword
+      public Boolean Equals(object obj) {
+#pragma warning restore CS0114 // Member hides inherited member; missing override keyword
+        return new Boolean(obj is Number ? this.value == ((Number)obj).Value : false);
+      }
 
       public override string ToString() {
         return value.ToString();
       }
       public override string TypeName => "number";
 
-      public Boolean IsFloatingPoint() {
+      public object IsFloatingPoint() {
         return new Boolean(this.ToString().Contains("."));
       }
     }
@@ -204,6 +388,11 @@ namespace Metal.FrontEnd.Types {
         System.Boolean.TryParse(left.Value.ToString(), out bool a);
         System.Boolean.TryParse(right.Value.ToString(), out bool b);
         return new Boolean(a || b);
+      }
+
+      public static Boolean operator !(Boolean self) {
+        System.Boolean.TryParse(self.Value.ToString(), out bool a);
+        return new Boolean(!self.Value);
       }
 
       public override string ToString() {
