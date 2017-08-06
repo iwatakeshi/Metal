@@ -27,7 +27,7 @@ let b = 0;
 let ab = a + b;
 
 # an error occurs
-let c: double = "0.40";
+let c: number = "0.40";
 
 /* Functions */
 
