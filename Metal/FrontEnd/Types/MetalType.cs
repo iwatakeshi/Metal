@@ -485,7 +485,10 @@ namespace Metal.FrontEnd.Types {
         this.end = end;
       }
 
-      public override string TypeName => throw new NotImplementedException();
+      public override string TypeName => "range";
+
+      public Number Start => new Number(start);
+      public Number End => new Number(end);
 
       public IEnumerator GetEnumerator() {
         var increment = (int)end > (int)start ? 1 : -1;
