@@ -137,9 +137,9 @@ namespace Metal {
       public static String Copyright { get { return String.Format("Copyright (c) {0} - {1} {2}", 2015, DateTime.Now.Year.ToString(), Author); } }
 
       public static void Print() {
-        Console.WriteLine(About.Name);
-        Console.WriteLine(About.Version);
-        Console.WriteLine(About.License);
+        Console.WriteLine(Name);
+        Console.WriteLine(Version);
+        Console.WriteLine(License);
         Console.WriteLine();
       }
     }

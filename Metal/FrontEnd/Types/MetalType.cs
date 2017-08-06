@@ -295,7 +295,7 @@ namespace Metal.FrontEnd.Types {
       public static Boolean operator ==(Number left, Number right) {
         double.TryParse(left.Value.ToString(), out double a);
         double.TryParse(right.Value.ToString(), out double b);
-        return new Boolean(a == b);
+        return new Boolean(a.Equals(b));
       }
 
       public static Boolean operator ==(Number left, int right) {
@@ -318,7 +318,7 @@ namespace Metal.FrontEnd.Types {
       public static Boolean operator !=(Number left, Number right) {
         double.TryParse(left.Value.ToString(), out double a);
         double.TryParse(right.Value.ToString(), out double b);
-        return new Boolean(a != b);
+        return new Boolean(!(a.Equals(b)));
       }
 
       public static Boolean operator !=(Number left, int right) {
@@ -339,13 +339,13 @@ namespace Metal.FrontEnd.Types {
 
       public override bool Equals(object obj) {
         if (obj is int) return (int)value == (int) obj;
-        if (obj is double) return (double)value == (double)obj;
+        if (obj is double) return ((double)value).Equals((double)obj);
         if (obj is Number) return value == ((Number)obj).value;
         return false;
       }
 
       public override int GetHashCode() {
-        return ((int)value ^ (int)((int)value >> 32));
+        return ((int)Value ^ (int)((int)Value >> 32));
       }
 
       /* Type conversions */
@@ -374,15 +374,6 @@ namespace Metal.FrontEnd.Types {
       public bool IsFloatingPoint() {
         return value.ToString().Contains(".");
       }
-
-      public static bool IsNumber(params object[] numbers) {
-        foreach (var number in numbers) {
-          if (!((number is int) || (number is double) || (number is Number))) {
-            return false;
-          }
-        }
-        return true;
-      }
     }
 
     public class String : MetalType {
@@ -394,7 +385,7 @@ namespace Metal.FrontEnd.Types {
       }
 
       public String(object value) {
-        this.value = value.ToString();
+        this.value = (string)value;
       }
 
       public static String operator +(String left, String right) {
@@ -518,6 +509,24 @@ namespace Metal.FrontEnd.Types {
       if (value is null) return new Null();
       if (value is MetalType) return (MetalType)value;
       return new Any(value);
+    }
+
+    public static bool IsNumber(params object[] numbers) {
+      foreach (var number in numbers) {
+        if (!((number is int) || (number is double) || (number is Number))) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    public static bool IsString(params object[] strings) {
+      foreach (var @string in strings) {
+        if (!((@string is string) || (@string is String))) {
+          return false;
+        }
+      }
+      return true;
     }
   }
 }

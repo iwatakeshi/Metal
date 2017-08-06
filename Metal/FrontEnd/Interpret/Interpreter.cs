@@ -18,7 +18,6 @@ namespace Metal.FrontEnd.Interpret {
     public MetalEnvironment Environment => environment;
 
     public Interpreter() {
-
       DefineGlobals();
       environment = globals;
     }
@@ -185,19 +184,18 @@ namespace Metal.FrontEnd.Interpret {
 
         CheckNullOperand(expression.Operator, left, right);
 
-        if (left is string || right is string) {
-          //Console.WriteLine(string.Format("left {0}, right {1}", left.ToString(), right.ToString()));
-          return left.ToString() + right.ToString();
+        if (MetalType.IsString(left, right)) {
+          return new MetalType.String(left) + new MetalType.String(right);
         }
 
-        if (MetalType.Number.IsNumber(left, right)) {
+        if (MetalType.IsNumber(left, right)) {
           return new MetalType.Number(left) + new MetalType.Number(right);
         }
       }
 
       // '-' operator
       if (expression.Operator.IsOperator("-")) {
-        if (MetalType.Number.IsNumber(left, right)) {
+        if (MetalType.IsNumber(left, right)) {
           return new MetalType.Number(left) - new MetalType.Number(right);
         }
       }
@@ -205,14 +203,14 @@ namespace Metal.FrontEnd.Interpret {
       // '*' operator
       if (expression.Operator.IsOperator("*")) {
 
-        if (MetalType.Number.IsNumber(left, right)) {
+        if (MetalType.IsNumber(left, right)) {
           return new MetalType.Number(left) * new MetalType.Number(right);
         }
       }
 
       // '/' operator
       if (expression.Operator.IsOperator("/")) {
-        if (MetalType.Number.IsNumber(left, right)) {
+        if (MetalType.IsNumber(left, right)) {
           return new MetalType.Number(left) / new MetalType.Number(right);
         }
       }
@@ -244,8 +242,7 @@ namespace Metal.FrontEnd.Interpret {
         return new MetalType.Range(left, right);
       }
 
-      return null;
-    }
+      return null;    }
 
     public object Visit(Expression.Call expression) {
       object callee = Evaluate(expression.Callee);
