@@ -63,6 +63,8 @@ namespace Metal.FrontEnd.Scan {
         case ')': return AddToken(TokenType.RightParenthesisPunctuation, ch);
         case '{': return AddToken(TokenType.LeftBracePunctuation, ch);
         case '}': return AddToken(TokenType.RightBracePunctuation, ch);
+        case '[': return AddToken(TokenType.LeftBracketPunctuation, ch);
+        case ']': return AddToken(TokenType.RightBracketPunctuation, ch);
         case ',': return AddToken(TokenType.CommaPunctuation, ch);
         case ';': return AddToken(TokenType.SemiColonPunctuation, ch);
         case ':': return AddToken(TokenType.ColonPunctuation, ch);

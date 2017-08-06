@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System;
 namespace Metal.FrontEnd.Parse {
   public class Parser {
-    
+
     private List<Token> tokens;
     private int position = 0;
     private Scanner scanner;
@@ -109,7 +109,7 @@ namespace Metal.FrontEnd.Parse {
       }
       return false;
     }
-    
+
     private bool Match(params TokenType[] types) {
       foreach (var type in types) {
         if (Check((type))) {
@@ -190,7 +190,7 @@ namespace Metal.FrontEnd.Parse {
 
     private Statement ParseExpressionStatement() {
       Expression expr = ParseExpression();
-      if (Match(TokenType.SemiColonPunctuation)) {}
+      if (Match(TokenType.SemiColonPunctuation)) { }
       foundExpression = true;
       return new Statement.Expr(expr);
     }
@@ -201,7 +201,7 @@ namespace Metal.FrontEnd.Parse {
       if (!Check(TokenType.SemiColonPunctuation)) {
         value = ParseExpression();
       }
-      if (Match(TokenType.SemiColonPunctuation)) {}
+      if (Match(TokenType.SemiColonPunctuation)) { }
       return new Statement.Return(keyword, value);
     }
 
@@ -241,7 +241,7 @@ namespace Metal.FrontEnd.Parse {
       if (Match((TokenType.Operator, "="))) {
         initializer = ParseExpression();
       }
-      if (Match(TokenType.SemiColonPunctuation)) {}
+      if (Match(TokenType.SemiColonPunctuation)) { }
       return new Statement.Var(name, initializer);
     }
 
@@ -331,7 +331,7 @@ namespace Metal.FrontEnd.Parse {
           Consume(TokenType.RightParenthesisPunctuation, "Expect ')' after condition.");
         }
         var end = repeatWhileParenthesisEnabled ? "')'" : "condition";
-        if (Match(TokenType.SemiColonPunctuation)) {}
+        if (Match(TokenType.SemiColonPunctuation)) { }
         return new Statement.RepeatWhile(condition, body);
       } finally {
         loopDepth--;
@@ -346,7 +346,7 @@ namespace Metal.FrontEnd.Parse {
 
     private Expression ParseAssignment() {
       Expression expression = ParseConditional();
-        if (Match((TokenType.Operator, "="))) {
+      if (Match((TokenType.Operator, "="))) {
         Token equals = PeekBack();
         Expression value = ParseAssignment();
         if (expression is Expression.Variable) {
@@ -444,10 +444,20 @@ namespace Metal.FrontEnd.Parse {
         Expression right = ParseUnary();
         return new Expression.Unary(@operator, right);
       }
-      return ParseCall();
+      return ParseArrayAccess();
     }
-
-    private Expression ParseCall () {
+    private Expression ParseArrayAccess() {
+      Expression expression = ParsePrimary();
+      //if (expression is Expression.Literal.Array) {
+      if (Match(TokenType.LeftBracketPunctuation)) {
+        var index = ParseExpression();
+        Consume(TokenType.RightBracketPunctuation, "Expect ']' after index.");
+        expression = new Expression.Literal.Array.Access(expression, index);
+      }
+      //}
+      return expression;
+    }
+    private Expression ParseCall() {
       Expression expression = ParsePrimary();
       while (true) {
         if (Match(TokenType.LeftParenthesisPunctuation)) {
@@ -465,7 +475,7 @@ namespace Metal.FrontEnd.Parse {
           if (parameters.Count >= 10) {
             Error(Peek(), "Cannot have more than 10 parameters.");
           }
-          parameters.Add(Consume(TokenType.Identifier, 
+          parameters.Add(Consume(TokenType.Identifier,
                                  string.Format("Expect parameter name but found {0}", Current())));
         } while (Match(TokenType.CommaPunctuation));
       }
@@ -515,6 +525,18 @@ namespace Metal.FrontEnd.Parse {
         Consume(TokenType.RightParenthesisPunctuation, "Expect ')' after expression.");
         return new Expression.Parenthesized(expression);
       }
+
+      if (Match(TokenType.LeftBracketPunctuation)) {
+        List<Expression> expressions = new List<Expression>();
+        if (!Check(TokenType.RightBracketPunctuation)) {
+          do {
+            expressions.Add(ParseExpression());
+          } while (Match(TokenType.CommaPunctuation));
+        }
+        Consume(TokenType.RightBracketPunctuation, "Expect ']' after expressions.");
+        return new Expression.Literal.Array(expressions);
+      }
+
       throw Error(Current(), "Expect expression.");
     }
   }

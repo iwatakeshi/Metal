@@ -158,6 +158,30 @@ namespace Metal.FrontEnd.Interpret {
       return expression.Value;
     }
 
+    public object Visit(Expression.Literal.Array expression) {
+      List<object> values = new List<object>();
+      foreach(var value in expression.Expressions) {
+        values.Add(MetalType.DeduceType(Evaluate(value)));
+      }
+      return new MetalType.Array(values); 
+    }
+
+    public object Visit(Expression.Literal.Array.Access expression) {
+  
+      try {
+        MetalType.Array array = (MetalType.Array)Evaluate(expression.Expression);
+        if (expression.Index != null) {
+          var index = Evaluate(expression.Index);
+          if (index is MetalType.Number) return array[(MetalType.Number)index];
+          if (index is MetalType.Range) return array[(MetalType.Range)index];
+          if (index is int) return array[(int)index];
+        }
+      } catch {
+        throw new MetalException.Runtime("Cannot access a non-array type.");
+      }
+      return null;
+    }
+
     public object Visit(Expression.Parenthesized expression) {
       return Evaluate(expression.Center);
     }
