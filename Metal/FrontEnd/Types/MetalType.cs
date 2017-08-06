@@ -504,6 +504,10 @@ namespace Metal.FrontEnd.Types {
         }
         return range;
       }
+
+      public override string ToString() {
+        return "range";
+      }
     }
 
     public static object DeduceType(object value) {
