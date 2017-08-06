@@ -190,18 +190,14 @@ namespace Metal.FrontEnd.Interpret {
           return left.ToString() + right.ToString();
         }
 
-        if ((left is int || right is int) || (left is double || right is double)) {
+        if (MetalType.Number.IsNumber(left, right)) {
           return new MetalType.Number(left) + new MetalType.Number(right);
-        }
-
-        if((left is MetalType.Number) && (right is MetalType.Number)) {
-          return ((MetalType.Number)left) + ((MetalType.Number)right);
         }
       }
 
       // '-' operator
       if (expression.Operator.IsOperator("-")) {
-        if ((left is int || right is int) || (left is double || right is double)) {
+        if (MetalType.Number.IsNumber(left, right)) {
           return new MetalType.Number(left) - new MetalType.Number(right);
         }
       }
@@ -209,14 +205,14 @@ namespace Metal.FrontEnd.Interpret {
       // '*' operator
       if (expression.Operator.IsOperator("*")) {
 
-        if ((left is int || right is int) || (left is double || right is double)) {
+        if (MetalType.Number.IsNumber(left, right)) {
           return new MetalType.Number(left) * new MetalType.Number(right);
         }
       }
 
       // '/' operator
       if (expression.Operator.IsOperator("/")) {
-        if ((left is int || right is int) || (left is double || right is double)) {
+        if (MetalType.Number.IsNumber(left, right)) {
           return new MetalType.Number(left) / new MetalType.Number(right);
         }
       }
@@ -245,7 +241,7 @@ namespace Metal.FrontEnd.Interpret {
 
       if (expression.Operator.IsOperator("..")) {
         CheckNumberOperand(expression.Operator, left, right);
-        return ApplyRangeOperator(ConvertObjectToInt(left, right));
+        return new MetalType.Range(left, right);
       }
 
       return null;
@@ -281,71 +277,6 @@ namespace Metal.FrontEnd.Interpret {
     }
 
     /* Helpers */
-
-    private (int, int) ConvertObjectToInt(object left, object right) {
-      int.TryParse(left.ToString(), out int a);
-      int.TryParse(right.ToString(), out int b);
-      //Console.WriteLine(string.Format("a {0}, b {1}", a, b));
-      return (a, b);
-    }
-
-    private (double, double) ConvertObjectToDouble(object left, object right) {
-      double.TryParse(left.ToString(), out double a);
-      double.TryParse(right.ToString(), out double b);
-      //Console.WriteLine(string.Format("a {0}, b {1}", a, b));
-      return (a, b);
-    }
-
-    private int ApplyIntOperatorToOperand((int, int) operands, string operand) {
-      int a = operands.Item1, b = operands.Item2;
-      switch (operand) {
-        case "+": return a + b;
-        case "-": return a - b;
-        case "*": return a * b;
-        case "/": {
-            if (b == 0) throw new MetalException.Runtime("Division by zero.");
-            return a / b;
-          }
-      }
-      return 0;
-    }
-
-    private double ApplyDoubleOperatorToOperand((double, double) operands, string operand) {
-      double a = operands.Item1, b = operands.Item2;
-      switch (operand) {
-        case "+": return a + b;
-        case "-": return a - b;
-        case "*": return a * b;
-        case "/": {
-            if (Equals(b, 0)) Metal.RuntimeError(new MetalException.Runtime("Division by zero."));
-            return a / b;
-          }
-      }
-      return 0.0f;
-    }
-
-    private bool ApplyBoolOperatorToOperand((double, double) operands, string operand) {
-      switch (operand) {
-        case ">": return operands.Item1 > operands.Item2;
-        case ">=": return operands.Item1 >= operands.Item2;
-        case "<": return operands.Item1 < operands.Item2;
-        case "<=": return operands.Item1 <= operands.Item2;
-      }
-      return false;
-    }
-
-    private object ApplyRangeOperator((int, int) operands) {
-      var a = operands.Item1;
-      var b = operands.Item2;
-      return CreateRange(a, b);
-    }
-
-    IEnumerable<int> CreateRange(int a, int b) {
-      var increment = b > a ? 1 : -1;
-      for (var i = a; i != b; i += increment)
-        yield return i;
-      yield return b;
-    }
 
     private void CheckNullOperand(Token @operator, object left, object right) {
       if (left == null || right == null) {

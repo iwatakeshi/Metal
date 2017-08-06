@@ -4,6 +4,7 @@ using Metal.Intermediate;
 using Metal.FrontEnd.Grammar;
 using Metal.FrontEnd.Interpret;
 using Metal.FrontEnd.Exceptions;
+using System.Collections;
 
 namespace Metal.FrontEnd.Types {
   public abstract class MetalType : Object {
@@ -79,7 +80,7 @@ namespace Metal.FrontEnd.Types {
       public object Value => value;
 
       public Number(object value) {
-        this.value = value;
+        this.value = (value is MetalType) ? ((MetalType.Number)value).value : value;
       }
 
       /* Negation */
@@ -344,13 +345,40 @@ namespace Metal.FrontEnd.Types {
         return new Boolean(obj is Number ? this.value == ((Number)obj).Value : false);
       }
 
+      /* Type conversions */
       public override string ToString() {
         return value.ToString();
       }
+
+      public int ToInteger() {
+        return (int)value;
+      }
+
+      public double ToFloatingPoint() {
+        return (double)value;
+      }
+
+      public Number ToIntegerNumber() {
+        return new Number(this.ToInteger());
+      }
+
+      public Number ToFloatingPointNumber() {
+        return new Number(this.ToFloatingPoint());
+      }
+
       public override string TypeName => "number";
 
-      public object IsFloatingPoint() {
-        return new Boolean(this.ToString().Contains("."));
+      public bool IsFloatingPoint() {
+        return value.ToString().Contains(".");
+      }
+
+      public static bool IsNumber(params object[] numbers) {
+        foreach (var number in numbers) {
+          if (!((number is int) || (number is double) || (number is Number))) {
+            return false;
+          }
+        }
+        return true;
       }
     }
 
@@ -361,9 +389,32 @@ namespace Metal.FrontEnd.Types {
       public String(string value) {
         this.value = value;
       }
-      public static String operator +(String left, String right) {
-        return new String(left.Value + right.Value);
+
+      public String(object value) {
+        this.value = value.ToString();
       }
+
+      public static String operator +(String left, String right) {
+        return new String(left.value + right.value);
+      }
+
+      public static String operator +(String left, string right) {
+        return new String(left.value + right);
+      }
+
+      public static String operator +(string left, String right) {
+        return new String(left + right.value);
+      }
+
+      public static String operator +(String left, Number right) {
+        return new String(left + right); 
+      }
+
+      public static String operator +(Number left, String right) {
+        return new String(left + right);
+      }
+
+
       public override string ToString() {
         return value;
       }
@@ -422,6 +473,33 @@ namespace Metal.FrontEnd.Types {
       public object Value => null;
       public override string TypeName => "null";
     }
+
+    public class Range : MetalType, IEnumerable {
+      public object start;
+      public object end;
+      public Range(object start, object end) {
+        this.start = start;
+        this.end = end;
+      }
+
+      public override string TypeName => throw new NotImplementedException();
+
+      public IEnumerator GetEnumerator() {
+        var increment = (int)end > (int)start ? 1 : -1;
+        for (var i = (int)start; i != (int)end; i += increment)
+          yield return new Number(i);
+        yield return new Number(end);
+      }
+
+      public List<Number> ToList() {
+        List<Number> range = new List<Number>();
+        foreach(var value in this) {
+          range.Add((Number)value);
+        }
+        return range;
+      }
+    }
+
     public static object DeduceType(object value) {
       if (value is string) return new String(((string)value).ToString());
       if (value is int) return new Number(value);

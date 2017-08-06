@@ -72,7 +72,7 @@ namespace Metal {
         } else {
          
           var line = Regex.Replace(lines.ToString(), @"\t|\n|\r", "");
-          if (line[line.Length - 1] == '{') {
+          if (line.Length > 0 && line[line.Length - 1] == '{') {
             // Initially count all '{' and assume that
             // they are correctly closed with '}'
             foreach(var ch in line) {
