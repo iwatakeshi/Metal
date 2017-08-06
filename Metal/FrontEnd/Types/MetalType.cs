@@ -73,9 +73,7 @@ namespace Metal.FrontEnd.Types {
     }
 
 
-#pragma warning disable CS0661 // Type defines operator == or operator != but does not override Object.GetHashCode()
     public class Number : MetalType {
-#pragma warning restore CS0661 // Type defines operator == or operator != but does not override Object.GetHashCode()
       private object value;
       public object Value => value;
 
@@ -339,10 +337,15 @@ namespace Metal.FrontEnd.Types {
         return new Number(left) != right;
       }
 
-#pragma warning disable CS0114 // Member hides inherited member; missing override keyword
-      public Boolean Equals(object obj) {
-#pragma warning restore CS0114 // Member hides inherited member; missing override keyword
-        return new Boolean(obj is Number ? this.value == ((Number)obj).Value : false);
+      public override bool Equals(object obj) {
+        if (obj is int) return (int)value == (int) obj;
+        if (obj is double) return (double)value == (double)obj;
+        if (obj is Number) return value == ((Number)obj).value;
+        return false;
+      }
+
+      public override int GetHashCode() {
+        return ((int)value ^ (int)((int)value >> 32));
       }
 
       /* Type conversions */
