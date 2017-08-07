@@ -47,7 +47,7 @@ namespace Metal.FrontEnd.Scan {
     /// <returns>The current token.</returns>
     public Token ScanSafeToken() {
       Token current = EOF;
-      while (!IsAtEnd && (current = ScanToken()) == null) ;
+      while (!IsAtEnd && (current = ScanToken()) == null) {};
       if (IsAtEnd) tokens.Add(current);
       return current;
     }
@@ -91,7 +91,7 @@ namespace Metal.FrontEnd.Scan {
             break;
           } else { return AddToken(TokenType.Operator, ch); }
         case '!': return AddToken(TokenType.Operator, Match('=') ? "!=" : "!");
-        case '=': return AddToken(TokenType.Operator, Match('=') ? "==" : "=");
+        case '=': return AddToken(TokenType.Operator, Match('=') ? "==" : (Match('>') ? "=>" : "="));
         case '<': return AddToken(TokenType.Operator, Match('=') ? "<=" : "<");
         case '>': return AddToken(TokenType.Operator, Match('=') ? ">=" : ">");
         // Single Comment

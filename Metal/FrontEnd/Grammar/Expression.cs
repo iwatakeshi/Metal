@@ -95,9 +95,9 @@ namespace Metal.FrontEnd.Grammar {
     }
 
     public class Tuple : Expression {
-      private List<(Token, Expression)> elements;
-      public List<(Token, Expression)> Elements => elements;
-      public Tuple(List<(Token, Expression)> elements) {
+      private List<(Expression variable, Expression expression)> elements;
+      public List<(Expression varibable, Expression expression)> Elements => elements;
+      public Tuple(List<(Expression variable, Expression expression)> elements) {
         this.elements = elements;
       }
       public override Expression Left => null;
