@@ -151,7 +151,7 @@ repeat {
 
 ### Binary operators
 
-* Add (`a +b`)
+* Add (`a + b`)
 * Subract (`a - b`)
 * Divide (`a / b`)
 * Multiply (`a * b`)
