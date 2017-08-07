@@ -457,13 +457,11 @@ namespace Metal.FrontEnd.Parse {
       return ParseArrayAccess(expression);
     }
     private Expression ParseArrayAccess(Expression expression) {
-      //if (expression is Expression.Literal.Array) {
       if (Match(TokenType.LeftBracketPunctuation)) {
         var index = ParseExpression();
         Consume(TokenType.RightBracketPunctuation, "Expect ']' after index.");
         expression = new Expression.Literal.Array.Access(expression, index);
       }
-      //}
       return expression;
     }
     private Expression.Function ParseFuncExpression(string kind) {
