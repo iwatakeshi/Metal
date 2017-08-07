@@ -469,6 +469,7 @@ namespace Metal.FrontEnd.Parse {
     }
     private Expression.Function ParseFuncExpression(string kind) {
       bool isLambda = kind.Contains("lambda");
+      var body = new List<Statement>();
       Consume(TokenType.LeftParenthesisPunctuation, string.Format("Expect '(' after {0} name.", kind));
       List<Token> parameters = new List<Token>();
       if (!Check(TokenType.RightParenthesisPunctuation)) {
@@ -482,9 +483,15 @@ namespace Metal.FrontEnd.Parse {
       }
 
       Consume(TokenType.RightParenthesisPunctuation, "Expect ')' after parameters.");
-      Consume(TokenType.LeftBracePunctuation, string.Format("Expect '{0}' before {1} body.", "{", kind));
-
-      return new Expression.Function(parameters, ParseBlockStatement());
+      
+      if (isLambda) {
+       if (Match(TokenType.LeftBracePunctuation)) {
+         body = ParseBlockStatement();
+       } else if (Match((TokenType.Operator, "=>"))) {
+         body.Add(new Statement.Return(null, ParseExpression()));
+       }
+      } else Consume(TokenType.LeftBracePunctuation, string.Format("Expect '{0}' before {1} body.", "{", kind));
+      return new Expression.Function(parameters, isLambda ? body : ParseBlockStatement());
     }
 
     private Expression FinishCall(Expression callee) {
@@ -532,22 +539,25 @@ namespace Metal.FrontEnd.Parse {
       throw Error(Current(), "Expect expression.");
     }
     private Expression ParseTuple(Expression expression) {
-      List<(Token, Expression)> elements = new List<(Token, Expression)>();
+      var elements = new List<(Expression variable, Expression expression)>();
       bool isTuple = false;
       if (expression is Expression.Variable) {
         if (Match(TokenType.ColonPunctuation)) {
-          elements.Add((((Expression.Variable)expression).Name, ParseExpression()));
-        }
+          elements.Add((expression, ParseExpression()));
+        } else elements.Add((expression, null));
       } else elements.Add((null, expression));
 
       if (Check(TokenType.CommaPunctuation)) isTuple = true; 
       
       while(Match(TokenType.CommaPunctuation)) {
-        Token name = null;
-        if (Match(TokenType.Identifier)) name = PeekBack();
+        var exp = ParseExpression();
+        Expression exp2 = null;
         if (Match(TokenType.ColonPunctuation)) {
-          elements.Add((name, ParseExpression()));
-        } else elements.Add((name, ParseExpression()));
+          exp2 = ParseExpression();
+        }
+        if (exp is Expression.Variable) {
+          elements.Add((exp, exp2));
+        } else elements.Add((null, exp));
       }
       
       return isTuple ? new Expression.Tuple(elements) : expression;

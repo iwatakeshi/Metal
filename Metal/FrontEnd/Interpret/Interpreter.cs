@@ -183,14 +183,12 @@ namespace Metal.FrontEnd.Interpret {
 
     public object Visit(Expression.Tuple expression) {
       List<(object, object)> values = new List<(object, object)>();
-      foreach (var (name, element) in expression.Elements) {
-        if (name != null && element != null) {
-          var value = Evaluate(element);
-          environment.Define(name.Lexeme, value);
-          values.Add((name.Lexeme, value));
-        } else if (name != null) {
-          values.Add((null, environment.Get(name)));
-        } else values.Add((null, Evaluate(element)));
+      foreach (var (id, exp) in expression.Elements) {
+        if (id != null && exp != null) {
+          values.Add((id ?? Evaluate(id), exp ?? Evaluate(exp)));
+        } else if (id != null) values.Add((Evaluate(id), null));
+        else if (exp != null) values.Add((null, Evaluate(exp)));
+
       }
       return new MetalType.Tuple(values);
     }
