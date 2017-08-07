@@ -61,6 +61,10 @@ var a = [1, 3]
 ```metalupa
 var a = 1..4
 ```
+### tuple
+```metalupa
+var a = (0, 2, b: 2, (1, 4))
+```
 
 ## Variables
 ```metalupa
