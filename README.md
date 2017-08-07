@@ -161,6 +161,17 @@ repeat {
 
 * Range (`a..b`)
 
+* Less-than (`<`)
+* Less-than or equal-to (`<=`)
+* Greater-than (`>`)
+* Greater-than or equal-to (`>=`)
+* Equal-to (`==`)
+* Not Equal-to (`!=`)
+
 ### Ternary operators
 
 * Conditional (`a ? b : c`)
+
+### Other operators
+
+* Assignment (`=`)
