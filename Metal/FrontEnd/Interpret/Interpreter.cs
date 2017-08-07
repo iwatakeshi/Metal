@@ -49,11 +49,6 @@ namespace Metal.FrontEnd.Interpret {
       Evaluate(statement.Expression);
       return null;
     }
-    //public object Visit(Statement.Print statement) {
-    //  Object value = Evaluate(statement.Expression);
-    //  Console.WriteLine(value ?? "null");
-    //  return null;
-    //}
 
     public object Visit(Statement.Return statement) {
       object value = null;
