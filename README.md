@@ -161,12 +161,12 @@ repeat {
 
 * Range (`a..b`)
 
-* Less-than (`<`)
-* Less-than or equal-to (`<=`)
+* Less-than (`a < b`)
+* Less-than or equal-to (`a <= b`)
 * Greater-than (`>`)
-* Greater-than or equal-to (`>=`)
-* Equal-to (`==`)
-* Not Equal-to (`!=`)
+* Greater-than or equal-to (`a >= b`)
+* Equal-to (`a == b`)
+* Not Equal-to (`a != b`)
 
 ### Ternary operators
 
@@ -174,4 +174,4 @@ repeat {
 
 ### Other operators
 
-* Assignment (`=`)
+* Assignment (`a = b`)
