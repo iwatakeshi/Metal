@@ -105,13 +105,20 @@ namespace Metal {
     public static void Error(int line, string message) {
       Report(line, "", message);
     }
-
+    public static void Error(string message) {
+      Report(message);
+    }
     public static void Error(Token token, string message) {
       if (token.Type == TokenType.EOF) {
         Report(token.Line, "at end", message);
       } else {
         Report(token.Line, string.Format("at '{0}'", token.Lexeme), message);
       }
+    }
+
+    public static void Report(string message) {
+      Console.WriteLine(string.Format("Error: {2}",  message));
+      hadError = true;
     }
     public static void Report(int line, string where, string message) {
       Console.WriteLine(string.Format("[line {0}] Error {1}: {2}", line, where, message));

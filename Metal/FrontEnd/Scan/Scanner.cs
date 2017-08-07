@@ -102,8 +102,8 @@ namespace Metal.FrontEnd.Scan {
         case '\r':
         case '\t': break;
         /* String Literals */
-        case '"': ScanString(); break;
-        case '\'': ScanString(); break;
+        case '"': ScanString(ch); break;
+        case '\'': ScanString(ch); break;
         default:
           if (Char.IsDigit(ch)) {
             return ScanNumber();
@@ -117,9 +117,8 @@ namespace Metal.FrontEnd.Scan {
       return null;
     }
 
-    private Token ScanString() {
-      char opening = Peek();
-      while ((Current() != opening) && !IsAtEnd) { Next(); }
+    private Token ScanString(char ch) {
+      while ((Current() != ch) && !IsAtEnd) { Next(); }
 
       // Unterminated string.
       if (IsAtEnd) { Metal.Error(source.Line, "Unterminated string."); return null; }
@@ -160,6 +159,15 @@ namespace Metal.FrontEnd.Scan {
     private char Peek(int to) {
       if (source.Position + to >= source.File.Length) return File.EOF;
       return source.File[source.Position + to];
+    }
+
+    private char PeekBack() {
+      return PeekBack(1);
+    }
+
+    private char PeekBack(int to) {
+      if (source.Position - to < 0) return source.File[0];
+      return source.File[source.Position - to];
     }
 
     private Token ScanNumber() {
