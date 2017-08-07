@@ -150,19 +150,19 @@ namespace Metal.FrontEnd.Interpret {
     }
 
     public object Visit(Expression.Literal expression) {
-      return expression.Value;
+      return MetalType.DeduceType(expression.Value);
     }
 
     public object Visit(Expression.Literal.Array expression) {
       List<object> values = new List<object>();
-      foreach(var value in expression.Expressions) {
+      foreach (var value in expression.Expressions) {
         values.Add(MetalType.DeduceType(Evaluate(value)));
       }
-      return new MetalType.Array(values); 
+      return new MetalType.Array(values);
     }
 
     public object Visit(Expression.Literal.Array.Access expression) {
-  
+
       try {
         MetalType.Array array = (MetalType.Array)Evaluate(expression.Expression);
         if (expression.Index != null) {
@@ -179,6 +179,20 @@ namespace Metal.FrontEnd.Interpret {
 
     public object Visit(Expression.Parenthesized expression) {
       return Evaluate(expression.Center);
+    }
+
+    public object Visit(Expression.Tuple expression) {
+      List<(object, object)> values = new List<(object, object)>();
+      foreach (var (name, element) in expression.Elements) {
+        if (name != null && element != null) {
+          var value = Evaluate(element);
+          environment.Define(name.Lexeme, value);
+          values.Add((name.Lexeme, value));
+        } else if (name != null) {
+          values.Add((null, environment.Get(name)));
+        } else values.Add((null, Evaluate(element)));
+      }
+      return new MetalType.Tuple(values);
     }
 
     public object Visit(Expression.Unary expression) {
@@ -261,7 +275,8 @@ namespace Metal.FrontEnd.Interpret {
         return new MetalType.Range(left, right);
       }
 
-      return null;    }
+      return null;
+    }
 
     public object Visit(Expression.Call expression) {
       object callee = Evaluate(expression.Callee);

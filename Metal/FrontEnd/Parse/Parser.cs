@@ -150,7 +150,10 @@ namespace Metal.FrontEnd.Parse {
       if (Check((type, null))) return Next();
       throw Error(Current(), message);
     }
-
+    private MetalException.Parse Error(string message) {
+      Metal.Error(message);
+      return new MetalException.Parse();
+    }
     private MetalException.Parse Error(Token token, string message) {
       Metal.Error(token, message);
       return new MetalException.Parse();
@@ -446,7 +449,7 @@ namespace Metal.FrontEnd.Parse {
       }
       return ParseCall();
     }
-    
+
     private Expression ParseCall() {
       Expression expression = ParsePrimary();
       while (true) {
@@ -465,6 +468,7 @@ namespace Metal.FrontEnd.Parse {
       return expression;
     }
     private Expression.Function ParseFuncExpression(string kind) {
+      bool isLambda = kind.Contains("lambda");
       Consume(TokenType.LeftParenthesisPunctuation, string.Format("Expect '(' after {0} name.", kind));
       List<Token> parameters = new List<Token>();
       if (!Check(TokenType.RightParenthesisPunctuation)) {
@@ -504,7 +508,7 @@ namespace Metal.FrontEnd.Parse {
       if (Match((TokenType.BooleanLiteral, "true"))) return new Expression.Literal(true);
       if (Match(TokenType.NullLiteral)) return new Expression.Literal(null);
       if (Match((TokenType.Reserved, "func"))) return ParseFuncExpression("lambda function");
-      if (Match( TokenType.NumberLiteral, TokenType.StringLiteral)) {
+      if (Match(TokenType.NumberLiteral, TokenType.StringLiteral)) {
         return new Expression.Literal(PeekBack().Literal);
       }
 
@@ -516,23 +520,47 @@ namespace Metal.FrontEnd.Parse {
       }
 
       if (Match(TokenType.LeftParenthesisPunctuation)) {
-        Expression expression = ParseExpression();
+        Expression expression = ParseTuple(ParseExpression());
+
         Consume(TokenType.RightParenthesisPunctuation, "Expect ')' after expression.");
         return new Expression.Parenthesized(expression);
       }
 
-      if (Match(TokenType.LeftBracketPunctuation)) {
-        List<Expression> expressions = new List<Expression>();
-        if (!Check(TokenType.RightBracketPunctuation)) {
-          do {
-            expressions.Add(ParseExpression());
-          } while (Match(TokenType.CommaPunctuation));
-        }
-        Consume(TokenType.RightBracketPunctuation, "Expect ']' after expressions.");
-        return new Expression.Literal.Array(expressions);
-      }
+      // Parse array
+      if (Match(TokenType.LeftBracketPunctuation)) return ParseArray();
 
       throw Error(Current(), "Expect expression.");
+    }
+    private Expression ParseTuple(Expression expression) {
+      List<(Token, Expression)> elements = new List<(Token, Expression)>();
+      bool isTuple = false;
+      if (expression is Expression.Variable) {
+        if (Match(TokenType.ColonPunctuation)) {
+          elements.Add((((Expression.Variable)expression).Name, ParseExpression()));
+        }
+      } else elements.Add((null, expression));
+
+      if (Check(TokenType.CommaPunctuation)) isTuple = true; 
+      
+      while(Match(TokenType.CommaPunctuation)) {
+        Token name = null;
+        if (Match(TokenType.Identifier)) name = PeekBack();
+        if (Match(TokenType.ColonPunctuation)) {
+          elements.Add((name, ParseExpression()));
+        } else elements.Add((name, ParseExpression()));
+      }
+      
+      return isTuple ? new Expression.Tuple(elements) : expression;
+    }
+    private Expression ParseArray() {
+      List<Expression> expressions = new List<Expression>();
+      if (!Check(TokenType.RightBracketPunctuation)) {
+        do {
+          expressions.Add(ParseExpression());
+        } while (Match(TokenType.CommaPunctuation));
+      }
+      Consume(TokenType.RightBracketPunctuation, "Expect ']' after expressions.");
+      return new Expression.Literal.Array(expressions);
     }
   }
 }

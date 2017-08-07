@@ -5,6 +5,8 @@ using Metal.FrontEnd.Grammar;
 using Metal.FrontEnd.Interpret;
 using Metal.FrontEnd.Exceptions;
 using System.Collections;
+using System.Linq;
+using System.Text;
 
 namespace Metal.FrontEnd.Types {
   public abstract class MetalType : Object {
@@ -44,21 +46,21 @@ namespace Metal.FrontEnd.Types {
         this.closure = closure;
         callee = (interpreter, arguments) => {
           MetalEnvironment environment = new MetalEnvironment(closure);
-            if (declaration != null) {
-              for (var i = 0; i < declaration.Parameters.Count; i++) {
-                environment.Define(declaration.Parameters[i].Lexeme, arguments[i]);
-              }
+          if (declaration != null) {
+            for (var i = 0; i < declaration.Parameters.Count; i++) {
+              environment.Define(declaration.Parameters[i].Lexeme, arguments[i]);
             }
+          }
 
-            if (declaration != null) {
+          if (declaration != null) {
             try {
               interpreter.ExecuteBlock(declaration.Body, environment);
-            } catch(MetalException.Runtime.Return value) {
+            } catch (MetalException.Runtime.Return value) {
               return value.Value;
             }
           }
           return null;
-          
+
         };
       }
       public string Name => name;
@@ -66,7 +68,7 @@ namespace Metal.FrontEnd.Types {
       Func<Interpreter, List<object>, object> ICallable.Call => callee;
       public MetalEnvironment Closure => closure;
       public override string ToString() {
-        return name == null ? "<func>": string.Format("<func {0}>", name);
+        return name == null ? "<func>" : string.Format("<func {0}>", name);
       }
 
       public override string TypeName => "function";
@@ -94,9 +96,9 @@ namespace Metal.FrontEnd.Types {
       }
 
       public Array this[Range index] {
-        get  {
+        get {
           List<object> slice = new List<object>();
-          foreach(var i in index.ToList()) {
+          foreach (var i in index.ToList()) {
             slice.Add(values[(int)i.Value]);
           }
           return new Array(slice);
@@ -150,7 +152,7 @@ namespace Metal.FrontEnd.Types {
       }
 
       public static Number operator +(Number left, double right) {
-       return left + new Number(right);
+        return left + new Number(right);
       }
 
       public static Number operator +(double left, Number right) {
@@ -376,7 +378,7 @@ namespace Metal.FrontEnd.Types {
       }
 
       public override bool Equals(object obj) {
-        if (obj is int) return (int)value == (int) obj;
+        if (obj is int) return (int)value == (int)obj;
         if (obj is double) return ((double)value).Equals((double)obj);
         if (obj is Number) return value == ((Number)obj).value;
         return false;
@@ -439,7 +441,7 @@ namespace Metal.FrontEnd.Types {
       }
 
       public static String operator +(String left, Number right) {
-        return new String(left + right); 
+        return new String(left + right);
       }
 
       public static String operator +(Number left, String right) {
@@ -454,7 +456,7 @@ namespace Metal.FrontEnd.Types {
       public override string TypeName => "string";
     }
 
-    public class Boolean: MetalType {
+    public class Boolean : MetalType {
       private bool value;
       public bool Value => value;
 
@@ -504,6 +506,9 @@ namespace Metal.FrontEnd.Types {
     public class Null : MetalType {
       public object Value => null;
       public override string TypeName => "null";
+      public override string ToString() {
+        return "null";
+      }
     }
 
     public class Range : MetalType, IEnumerable {
@@ -528,7 +533,7 @@ namespace Metal.FrontEnd.Types {
 
       public List<Number> ToList() {
         List<Number> range = new List<Number>();
-        foreach(var value in this) {
+        foreach (var value in this) {
           range.Add((Number)value);
         }
         return range;
@@ -538,6 +543,30 @@ namespace Metal.FrontEnd.Types {
         return "range";
       }
     }
+
+    public class Tuple : MetalType {
+      List<(object, object)> values;      
+      public List<(object, object)> Values => values;
+      public Tuple(List<(object, object)> values) {
+        this.values = values;
+      }
+      public override string TypeName => "tuple";
+      public override string ToString() {
+        StringBuilder tuple = new StringBuilder();
+        tuple.Append("(");
+        var count = 0;
+        foreach (var (name, value) in values) {
+          if (name != null && value != null) tuple.AppendFormat("{0}: {1}", name, value);
+          else if (name != null) tuple.Append(name);
+          else if (value != null) tuple.Append(value);
+          if (count++ < (values.Count - 1)) tuple.Append(", ");
+        }
+        tuple.Append(")");
+        return tuple.ToString();
+      }
+    }
+
+
 
     public static object DeduceType(object value) {
       if (value is string) return new String(((string)value).ToString());

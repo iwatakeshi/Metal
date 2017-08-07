@@ -63,6 +63,9 @@ namespace Metal.FrontEnd.Scan {
     }
 
     public override String ToString() {
+      if (literal == null) {
+        return string.Format("{0} '{1}'", type, lexeme);
+      }
       return string.Format("{0} '{1}' {2}", type, lexeme, literal);
     }
 

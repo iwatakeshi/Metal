@@ -13,6 +13,7 @@ namespace Metal.FrontEnd.Grammar {
       T Visit(Unary expression);
       T Visit(Binary expression);
       T Visit(Parenthesized expression);
+      T Visit(Tuple expression);
       T Visit(Variable expression);
       T Visit(Logical expression);
       T Visit(Conditional expression);
@@ -91,6 +92,23 @@ namespace Metal.FrontEnd.Grammar {
       public Expression Center => expression;
       public override Expression Right => null;
       public override Token Operator => null;
+    }
+
+    public class Tuple : Expression {
+      private List<(Token, Expression)> elements;
+      public List<(Token, Expression)> Elements => elements;
+      public Tuple(List<(Token, Expression)> elements) {
+        this.elements = elements;
+      }
+      public override Expression Left => null;
+
+      public override Expression Right => null;
+
+      public override Token Operator => null;
+
+      public override T Accept<T>(IVisitor<T> visitor) {
+        return visitor.Visit(this);
+      }
     }
 
     public class Literal : Expression {
@@ -249,18 +267,5 @@ namespace Metal.FrontEnd.Grammar {
         return visitor.Visit(this);
       }
     }
-
-    //public class Tuple : Expression {
-    //  private List<Expression> values;
-    //  public override Expression Left => null;
-    //  public override Expression Right => null;
-    //  public override Token Operator => null;
-
-    //  public List<Expression> Values => values;
-
-    //  public override T Accept<T>(IVisitor<T> visitor) {
-    //    throw new NotImplementedException();
-    //  }
-    //}
   }
 }
