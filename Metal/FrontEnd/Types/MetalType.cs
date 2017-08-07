@@ -72,6 +72,44 @@ namespace Metal.FrontEnd.Types {
       public override string TypeName => "function";
     }
 
+    public class Array : MetalType, IEnumerable {
+      private List<object> values;
+      public List<object> Values => values;
+      public int Count => values.Count;
+      public Array(List<object> values) {
+        this.values = values;
+      }
+      public IEnumerator GetEnumerator() {
+        return this.values.GetEnumerator();
+      }
+
+      public object this[int index] {
+        get => values[index];
+        set => values[index] = value;
+      }
+
+      public object this[Number index] {
+        get { return values[(int)index.Value]; }
+        set { values[(int)index.Value] = value; }
+      }
+
+      public Array this[Range index] {
+        get  {
+          List<object> slice = new List<object>();
+          foreach(var i in index.ToList()) {
+            slice.Add(values[(int)i.Value]);
+          }
+          return new Array(slice);
+        }
+      }
+
+      public override string ToString() {
+        return string.Format("[{0}]", string.Join(", ", values));
+      }
+
+      public override string TypeName => "array";
+    }
+
 
     public class Number : MetalType {
       private object value;

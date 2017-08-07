@@ -8,6 +8,8 @@ namespace Metal.FrontEnd.Grammar {
     public interface IVisitor<T> {
       T Visit(Assign expression);
       T Visit(Literal expression);
+      T Visit(Literal.Array expression);
+      T Visit(Literal.Array.Access expression);
       T Visit(Unary expression);
       T Visit(Binary expression);
       T Visit(Parenthesized expression);
@@ -105,6 +107,37 @@ namespace Metal.FrontEnd.Grammar {
       public override Token Operator => null;
 
       public object Value => value;
+
+      /* Array Literal */
+      public class Array : Literal {
+        private List<Expression> expressions;
+
+        public List<Expression> Expressions => expressions;
+
+
+        public Array(List<Expression> expressions) : base(null) {
+          this.expressions = expressions;
+        }
+
+        public override T Accept<T>(IVisitor<T> visitor) {
+          return visitor.Visit(this);
+        }
+
+        public class Access : Array {
+          private Expression index;
+          private Expression expression;
+          public Expression Index => index;
+          public Expression Expression => expression;
+          public Access(Expression expression, Expression index) : base(null) {
+            this.expression = expression;
+            this.index = index;
+          }
+
+          public override T Accept<T>(IVisitor<T> visitor) {
+            return visitor.Visit(this);
+          }
+        }
+      }
     }
 
 

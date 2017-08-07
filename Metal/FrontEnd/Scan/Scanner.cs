@@ -63,6 +63,8 @@ namespace Metal.FrontEnd.Scan {
         case ')': return AddToken(TokenType.RightParenthesisPunctuation, ch);
         case '{': return AddToken(TokenType.LeftBracePunctuation, ch);
         case '}': return AddToken(TokenType.RightBracePunctuation, ch);
+        case '[': return AddToken(TokenType.LeftBracketPunctuation, ch);
+        case ']': return AddToken(TokenType.RightBracketPunctuation, ch);
         case ',': return AddToken(TokenType.CommaPunctuation, ch);
         case ';': return AddToken(TokenType.SemiColonPunctuation, ch);
         case ':': return AddToken(TokenType.ColonPunctuation, ch);
@@ -101,7 +103,7 @@ namespace Metal.FrontEnd.Scan {
         case '\t': break;
         /* String Literals */
         case '"': ScanString(); break;
-        case '\'': ScanCharacter(); break;
+        case '\'': ScanString(); break;
         default:
           if (Char.IsDigit(ch)) {
             return ScanNumber();
@@ -116,7 +118,8 @@ namespace Metal.FrontEnd.Scan {
     }
 
     private Token ScanString() {
-      while (Current() != '"' && !IsAtEnd) { Next(); }
+      char opening = Peek();
+      while ((Current() != opening) && !IsAtEnd) { Next(); }
 
       // Unterminated string.
       if (IsAtEnd) { Metal.Error(source.Line, "Unterminated string."); return null; }
@@ -126,22 +129,6 @@ namespace Metal.FrontEnd.Scan {
       string lexeme = source.File.Substring(Start, End);
       string literal = source.File.Substring(Start + 1, End - 2);
       return AddToken(TokenType.StringLiteral, lexeme, literal);
-    }
-
-    private Token ScanCharacter() {
-      while (Current() != '\'' && !IsAtEnd) { Next(); }
-
-      // Unterminated string.
-      if (IsAtEnd) { Metal.Error(source.Line, "Unterminated character."); return null; }
-      // The closing '''.
-      Next();
-      string lexeme = source.File.Substring(Start, End);
-      string literal = source.File.Substring(Start + 1, End - 2);
-      if (literal.Contains("\\")) {
-        return AddToken(TokenType.CharacterLiteral, lexeme, Regex.Escape(literal));
-      }
-      else if(literal.Length > 1) { Metal.Error(source.Line, "Unrecognized character literal."); }
-      return AddToken(TokenType.CharacterLiteral, lexeme, literal);
     }
 
     private bool Match(char expected) {

@@ -4,9 +4,7 @@ namespace Metal.FrontEnd.Scan {
   public enum TokenType {
 
     /* Literals */
-    // 'a'
-    CharacterLiteral,
-    // "Hello, World!"
+    // "Hello, World!" or 'Hello, World!'
     StringLiteral,
     // 12
     NumberLiteral,
