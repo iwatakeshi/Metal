@@ -444,10 +444,19 @@ namespace Metal.FrontEnd.Parse {
         Expression right = ParseUnary();
         return new Expression.Unary(@operator, right);
       }
-      return ParseArrayAccess();
+      return ParseCall();
     }
-    private Expression ParseArrayAccess() {
+    
+    private Expression ParseCall() {
       Expression expression = ParsePrimary();
+      while (true) {
+        if (Match(TokenType.LeftParenthesisPunctuation)) {
+          expression = FinishCall(expression);
+        } else break;
+      }
+      return ParseArrayAccess(expression);
+    }
+    private Expression ParseArrayAccess(Expression expression) {
       //if (expression is Expression.Literal.Array) {
       if (Match(TokenType.LeftBracketPunctuation)) {
         var index = ParseExpression();
@@ -457,16 +466,6 @@ namespace Metal.FrontEnd.Parse {
       //}
       return expression;
     }
-    private Expression ParseCall() {
-      Expression expression = ParsePrimary();
-      while (true) {
-        if (Match(TokenType.LeftParenthesisPunctuation)) {
-          expression = FinishCall(expression);
-        } else break;
-      }
-      return expression;
-    }
-
     private Expression.Function ParseFuncExpression(string kind) {
       Consume(TokenType.LeftParenthesisPunctuation, string.Format("Expect '(' after {0} name.", kind));
       List<Token> parameters = new List<Token>();
@@ -507,9 +506,7 @@ namespace Metal.FrontEnd.Parse {
       if (Match((TokenType.BooleanLiteral, "true"))) return new Expression.Literal(true);
       if (Match(TokenType.NullLiteral)) return new Expression.Literal(null);
       if (Match((TokenType.Reserved, "func"))) return ParseFuncExpression("lambda function");
-      if (Match(
-        TokenType.NumberLiteral, TokenType.StringLiteral, TokenType.CharacterLiteral
-      )) {
+      if (Match( TokenType.NumberLiteral, TokenType.StringLiteral)) {
         return new Expression.Literal(PeekBack().Literal);
       }
 
