@@ -507,9 +507,7 @@ namespace Metal.FrontEnd.Parse {
       if (Match((TokenType.BooleanLiteral, "true"))) return new Expression.Literal(true);
       if (Match(TokenType.NullLiteral)) return new Expression.Literal(null);
       if (Match((TokenType.Reserved, "func"))) return ParseFuncExpression("lambda function");
-      if (Match(
-        TokenType.NumberLiteral, TokenType.StringLiteral, TokenType.CharacterLiteral
-      )) {
+      if (Match( TokenType.NumberLiteral, TokenType.StringLiteral)) {
         return new Expression.Literal(PeekBack().Literal);
       }
 
