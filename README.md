@@ -32,11 +32,6 @@ Cool isn't it? You may be wondering what is the goal for Metal. Well, Metal will
 
 ## Metal Types
 
-### char
-```metalupa
-var a = 'x'
-```
-
 ### string
 ```metalupa
 var a = "x"
