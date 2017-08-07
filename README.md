@@ -35,6 +35,7 @@ Cool isn't it? You may be wondering what is the goal for Metal. Well, Metal will
 ### string
 ```metalupa
 var a = "x"
+# and
 var a = 'x'
 ```
 
