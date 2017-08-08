@@ -65,6 +65,8 @@ var a = 1..4
 ```metalupa
 var a = (0, 2, b: 2, (1, 4))
 ```
+#### Note
+Metal uses strings for tuple comparison.
 
 ## Variables
 ```metalupa
@@ -107,8 +109,12 @@ function greet(name: string): string {
 # Current syntax
 func () { }
 
-# Proposed syntax
-() => { }
+# Final syntax
+func () {}
+# and
+func () => { }
+# and
+func() => expression
 ```
 
 
