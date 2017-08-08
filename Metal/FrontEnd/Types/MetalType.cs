@@ -540,14 +540,14 @@ namespace Metal.FrontEnd.Types {
       }
 
       public override string ToString() {
-        return "range";
+        return string.Format("{0}..{1}", start, end);
       }
     }
 
     public class Tuple : MetalType {
-      List<(object, object)> values;      
-      public List<(object, object)> Values => values;
-      public Tuple(List<(object, object)> values) {
+      List<object> values;
+      public List<object> Values => values;
+      public Tuple(List<object> values) {
         this.values = values;
       }
       public override string TypeName => "tuple";
@@ -555,15 +555,55 @@ namespace Metal.FrontEnd.Types {
         StringBuilder tuple = new StringBuilder();
         tuple.Append("(");
         var count = 0;
-        foreach (var (name, value) in values) {
-          if (name != null && value != null) tuple.AppendFormat("{0}: {1}", name, value);
-          else if (name != null) tuple.Append(name);
-          else if (value != null) tuple.Append(value);
+        foreach (var value in values) {
+          if (value is System.Tuple<object, object> t) tuple.AppendFormat("{0}: {1}", t.Item1, t.Item2);
+          else tuple.Append(value);
           if (count++ < (values.Count - 1)) tuple.Append(", ");
         }
         tuple.Append(")");
         return tuple.ToString();
       }
+      public override bool Equals(object obj) {
+        if (obj is null) return false;
+        if (obj is Tuple tuple) {
+          return ToString() == tuple.ToString();
+        }
+        return false;
+      }
+
+      public override int GetHashCode() {
+        unchecked {
+          int hash = 17;
+          hash = hash * 23 + Values.GetHashCode();
+          return hash;
+        }
+      }
+
+      //private class TupleComparer : IComparer<List<object>> {
+      //  public int Compare(List<object> x, List<object> y) {
+      //    if (object)
+      //  }
+      //}
+
+      private static bool ScrambledEquals<T>(IEnumerable<T> a, IEnumerable<T> b) {
+        var cnt = new Dictionary<T, int>();
+        foreach (T s in a) {
+          if (cnt.ContainsKey(s)) {
+            cnt[s]++;
+          } else {
+            cnt.Add(s, 1);
+          }
+        }
+        foreach (T s in b) {
+          if (cnt.ContainsKey(s)) {
+            cnt[s]--;
+          } else {
+            return false;
+          }
+        }
+        return cnt.Values.All(c => c == 0);
+      }
+
     }
 
 
