@@ -525,18 +525,21 @@ namespace Metal.FrontEnd.Types {
       public Number End => new Number(end);
 
       public IEnumerator GetEnumerator() {
-        var increment = (int)end > (int)start ? 1 : -1;
-        for (var i = (int)start; i != (int)end; i += increment)
+        int first = 0, last = 0;
+        if (start is Number x) first = (int)x.Value;
+        if (end is Number y) last = (int)y.Value;
+        var increment = last > first ? 1 : -1;
+        for (var i = first; i != last; i += increment)
           yield return new Number(i);
         yield return new Number(end);
       }
 
       public List<Number> ToList() {
-        List<Number> range = new List<Number>();
+        var list = new List<Number>();
         foreach (var value in this) {
-          range.Add((Number)value);
+          list.Add((Number)value);
         }
-        return range;
+        return list;
       }
 
       public override string ToString() {
