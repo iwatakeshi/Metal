@@ -167,9 +167,9 @@ namespace Metal.FrontEnd.Interpret {
         MetalType.Array array = (MetalType.Array)Evaluate(expression.Expression);
         if (expression.Index != null) {
           var index = Evaluate(expression.Index);
-          if (index is MetalType.Number) return array[(MetalType.Number)index];
-          if (index is MetalType.Range) return array[(MetalType.Range)index];
-          if (index is int) return array[(int)index];
+          if (index is MetalType.Number number) return array[number];
+          if (index is MetalType.Range range) return array[range];
+          if (index is int i) return array[i];
         }
       } catch {
         throw new MetalException.Runtime("Cannot access a non-array type.");
