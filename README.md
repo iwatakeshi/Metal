@@ -104,7 +104,7 @@ function greet(name: string): string {
 }
 ```
 
-### lambda
+### lambda (aka closure)
 ```metalupa
 # Current syntax
 func () { }
