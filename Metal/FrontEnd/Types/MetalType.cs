@@ -425,7 +425,9 @@ namespace Metal.FrontEnd.Types {
       }
 
       public String(object value) {
-        this.value = (string)value;
+        if (value is String x) this.value = x.value;
+        if (value is string y) this.value = y;
+        this.value = value.ToString();
       }
 
       public static String operator +(String left, String right) {
