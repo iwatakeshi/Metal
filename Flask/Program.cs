@@ -1,8 +1,0 @@
-﻿using System;
-
-namespace Flask {
-	class MainClass {
-		public static void Main (string[] args) {
-		}
-	}
-}
