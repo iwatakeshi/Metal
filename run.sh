@@ -1,5 +1,4 @@
 #!/bin/bash
-rm -f metal/**/**/*.class
-javac metal/**/**/*.java
+./compile.sh
 
 java metal/Metal
