@@ -5,12 +5,12 @@ import java.util.ArrayList;
 import metal.frontend.scanner.Token;
 
 public class Token {                                                     
-  final TokenType type;
-  final ArrayList<TokenType> types;                                           
-  final String lexeme;                                           
-  final Object literal;                                           
-  final int line; 
-  final int column;
+  public final TokenType type;
+  public final ArrayList<TokenType> types;                                           
+  public final String lexeme;                                           
+  public final Object literal;                                           
+  public final int line; 
+  public final int column;
 
   public Token(TokenType type, String lexeme, Object literal, int line, int column) {
     this.type = type;                                             

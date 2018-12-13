@@ -1,4 +1,4 @@
 #!/bin/bash
-./compile.sh
 
-java metal/generator/GenerateAst "metal/frontend/parser/grammar/"
+./compile.sh
+java metal/generator/ASTGenerator "metal/frontend/parser/grammar/"

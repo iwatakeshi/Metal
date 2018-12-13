@@ -1,4 +1,4 @@
 #!/bin/bash
-./compile.sh
 
+./compile.sh
 java metal/Metal
