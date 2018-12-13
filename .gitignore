@@ -1,6 +1,9 @@
 # Compiled class file
 *.class
 
+# VSCode folder for JSONs in certain environments
+.vscode
+
 # Log file
 *.log
 
