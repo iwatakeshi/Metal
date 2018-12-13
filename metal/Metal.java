@@ -64,7 +64,7 @@ public class Metal {
 
   private static void report(int line, int column, String where, String message) {
     System.err.println(                                               
-        "[line " + line + "Column" + column + "] Error" + where + ": " + message);        
+        "[Line " + line + "Column" + column + "] Error" + where + ": " + message);        
     hadError = true;                                                  
   } 
 
