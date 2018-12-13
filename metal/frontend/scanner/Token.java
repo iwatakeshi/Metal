@@ -10,24 +10,18 @@ public class Token {
   final String lexeme;                                           
   final Object literal;                                           
   final int line; 
+  final int column;
 
-  public Token(TokenType type, String lexeme, Object literal, int line) {
+  public Token(TokenType type, String lexeme, Object literal, int line, int column) {
     this.type = type;                                             
     this.lexeme = lexeme;                                         
     this.literal = literal;                                       
     this.line = line;
-    this.types = new ArrayList<>();                                             
-  }
-  
-  public Token(ArrayList<TokenType> types, String lexeme, Object literal, int line) {
-    this.types = types;
-    this.lexeme = lexeme;
-    this.literal = literal;
-    this.line = line;
-    this.type = TokenType.None;
+    this.column = column;
+    this.types = new ArrayList<>();                                            
   }
 
   public String toString() {                                      
-    return type + " " + lexeme + " " + literal;                   
+    return "Type: " + type + ", Lexeme: " + lexeme + ", Value: " + literal + ", Line: " + line + ", Column: " + column;                   
   }
 }                                                                 

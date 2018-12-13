@@ -24,26 +24,25 @@ public class Scanner {
 
   private static final Map<String, TokenType> keywords;
 
-  static {                                             
-    keywords = new HashMap<>();                        
-    keywords.put("and",    Reserved);                       
-    keywords.put("class",  Reserved);                     
-    keywords.put("else",   Reserved);                      
-    keywords.put("false",  Reserved);                     
-    keywords.put("for",    Reserved);                       
-    keywords.put("fun",    Reserved);                       
-    keywords.put("if",     Reserved);                        
-    keywords.put("nil",    Reserved);                       
-    keywords.put("or",     Reserved);                        
-    keywords.put("print",  Reserved);                     
-    keywords.put("return", Reserved);                    
-    keywords.put("super",  Reserved);                     
-    keywords.put("this",   Reserved);                      
-    keywords.put("true",   Reserved);                      
-    keywords.put("var",    Reserved);                       
-    keywords.put("while",  Reserved);                     
-  } 
-
+  static {
+    keywords = new HashMap<>();
+    keywords.put("and", Reserved);
+    keywords.put("class", Reserved);
+    keywords.put("else", Reserved);
+    keywords.put("false", Reserved);
+    keywords.put("for", Reserved);
+    keywords.put("fun", Reserved);
+    keywords.put("if", Reserved);
+    keywords.put("nil", Reserved);
+    keywords.put("or", Reserved);
+    keywords.put("print", Reserved);
+    keywords.put("return", Reserved);
+    keywords.put("super", Reserved);
+    keywords.put("this", Reserved);
+    keywords.put("true", Reserved);
+    keywords.put("var", Reserved);
+    keywords.put("while", Reserved);
+  }
 
   public List<Token> scanTokens() {
     while (!isAtEnd()) {
@@ -52,7 +51,7 @@ public class Scanner {
       scanToken();
     }
 
-    tokens.add(new Token(EOF, "", null, line));
+    tokens.add(new Token(EOF, "", null, line, column));
     return tokens;
   }
 
@@ -76,25 +75,29 @@ public class Scanner {
     case '+':
     case '*':
     case '!':
-      if (match('='))
+      if (match('=')) {
         addToken(Operator);
-      else{
-        var list = new ArrayList<TokenType>();
-        list.add(Operator);
-        list.add(Punctuation);
-        addToken(list);
+        break;
       }
+      addToken(Operator);
       break;
     case '=':
     case '<':
     case '>':
-      if (match('='))
+      if (match('=')) {
         addToken(Operator);
+        break;
+      }
+      addToken(Operator);
       break;
     case '/':
-      if(match('*')){
+      if (match('*')) {
         while (((current() != '*') && (peek() != '/')) && !isAtEnd())
-          next();       
+          next();
+          
+        next();
+        next();
+    
       } else if (match('=')) {
         addToken(Operator);
       } else {
@@ -109,28 +112,31 @@ public class Scanner {
     case '\'':
       string();
       break;
-      case 'o':
-      if (peek() == 'r') {
-        addToken(Reserved);
-      }
+    case ' ':
+    case '\t':
+    case '\r':
+      break;
+    case '\n':
+      line++;
+      column = 1;
       break;
     default:
       if (isDigit(c)) {
         number();
-      } else if (isAlpha(c)) {                   
-        identifier(); 
+      } else if (isAlpha(c)) {
+        identifier();
       } else {
-        Metal.error(line, column, "Unexpected character.");
+        Metal.error(line, column, "Unexpected character '" + c + "'.");
       }
       break;
     }
   }
 
   private void string() {
-    while (current() != '"' && !isAtEnd()) {
-      if (current() == '\n'){
+    while (((current() != '"') && (current() != '\'')) && !isAtEnd()) {
+      if (current() == '\n') {
         line++;
-        //reset column on new line
+        // reset column on new line
         column = 1;
       }
       next();
@@ -138,7 +144,7 @@ public class Scanner {
 
     // Unterminated string.
     if (isAtEnd()) {
-      Metal.error(line,column, "Unterminated string.");
+      Metal.error(line, column, "Unterminated string.");
       return;
     }
 
@@ -150,31 +156,33 @@ public class Scanner {
     addToken(StringLiteral, value);
   }
 
-  private void number() {                                     
-    while (isDigit(current())) next();
+  private void number() {
+    while (isDigit(current()))
+      next();
 
-    // Look for a fractional part.                            
-    if (current() == '.' && isDigit(peek())) {               
-      // Consume the "."                                      
-      next();                                              
+    // Look for a fractional part.
+    if (current() == '.' && isDigit(peek())) {
+      // Consume the "."
+      next();
 
-      while (isDigit(current())) next();                      
-    }                                                         
+      while (isDigit(current()))
+        next();
+    }
 
-    addToken(NumberLiteral,                                          
-        Double.parseDouble(source.substring(start, position)));
+    addToken(NumberLiteral, Double.parseDouble(source.substring(start, position)));
   }
 
-  private void identifier() {                
-    while (isAlphaNumeric(peek())) next();
+  private void identifier() {
+    while (isAlphaNumeric(current()))
+      next();
 
-    // See if the identifier is a reserved word.   
+    // See if the identifier is a reserved word.
     String text = source.substring(start, position);
-
-    TokenType type = keywords.get(text);           
-    if (type == null) type = Identifier;           
-    addToken(type);                  
-  }  
+    TokenType type = keywords.get(text);
+    if (type == null)
+      type = Identifier;
+    addToken(type);
+  }
 
   private boolean match(char expected) {
     if (isAtEnd())
@@ -199,42 +207,30 @@ public class Scanner {
     return source.charAt(position - 1);
   }
 
-  private char peek() {                         
-    if (position + 1 >= source.length()) return '\0';
-    return source.charAt(position + 1);              
-  } 
-
-
-  private boolean isDigit(char c) {
-    return c >= '0' && c <= '9';   
+  private char peek() {
+    if (position + 1 >= source.length())
+      return '\0';
+    return source.charAt(position + 1);
   }
 
-  private boolean isAlpha(char c) {       
-    return (c >= 'a' && c <= 'z') ||      
-           (c >= 'A' && c <= 'Z') ||      
-            c == '_';                     
+  private boolean isDigit(char c) {
+    return c >= '0' && c <= '9';
+  }
+
+  private boolean isAlpha(char c) {
+    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
   }
 
   private boolean isAlphaNumeric(char c) {
-    return isAlpha(c) || isDigit(c);      
+    return isAlpha(c) || isDigit(c);
   }
 
   private void addToken(TokenType type) {
     addToken(type, null);
   }
 
-  private void addToken(ArrayList<TokenType> types) {
-    addToken(types, null);
-  }
-
   private void addToken(TokenType type, Object literal) {
     String lexeme = source.substring(start, position);
-    tokens.add(new Token(type, lexeme, literal, line));
+    tokens.add(new Token(type, lexeme, literal, line, column));
   }
-
-  private void addToken(ArrayList<TokenType> types, Object literal) {
-    String lexeme = source.substring(start, position);
-    tokens.add(new Token(types, lexeme, literal, line));
-  }
-
 }
