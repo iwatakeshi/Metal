@@ -2,7 +2,10 @@
 *.class
 
 # VSCode folder for JSONs in certain environments
-.vscode
+.vscode/
+
+# IntelliJ folder
+.idea/
 
 # Log file
 *.log
