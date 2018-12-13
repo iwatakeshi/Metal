@@ -78,26 +78,35 @@ public class Scanner {
     case '!':
       if (match('='))
         addToken(Operator);
-      var list = new ArrayList<TokenType>();
-      list.add(Operator);
-      list.add(Punctuation);
-      addToken(list);
+      else{
+        var list = new ArrayList<TokenType>();
+        list.add(Operator);
+        list.add(Punctuation);
+        addToken(list);
+      }
       break;
     case '=':
     case '<':
     case '>':
       if (match('='))
         addToken(Operator);
+      break;
     case '/':
-      if (match('/')) {
-        // A comment goes until the end of the line.
-        while (current() != '\n' && !isAtEnd())
-          next();
+      if(match('*')){
+        while (((current() != '*') && (peek() != '/')) && !isAtEnd())
+          next();       
+      } else if (match('=')) {
+        addToken(Operator);
       } else {
         addToken(Operator);
       }
       break;
+    case '#':
+      while (current() != '\n' && !isAtEnd())
+        next();
+      break;
     case '"':
+    case '\'':
       string();
       break;
       case 'o':
@@ -111,7 +120,7 @@ public class Scanner {
       } else if (isAlpha(c)) {                   
         identifier(); 
       } else {
-        Metal.error(line, "Unexpected character.");
+        Metal.error(line, column, "Unexpected character.");
       }
       break;
     }
@@ -119,14 +128,17 @@ public class Scanner {
 
   private void string() {
     while (current() != '"' && !isAtEnd()) {
-      if (current() == '\n')
+      if (current() == '\n'){
         line++;
+        //reset column on new line
+        column = 1;
+      }
       next();
     }
 
     // Unterminated string.
     if (isAtEnd()) {
-      Metal.error(line, "Unterminated string.");
+      Metal.error(line,column, "Unterminated string.");
       return;
     }
 
@@ -170,6 +182,7 @@ public class Scanner {
     if (source.charAt(position) != expected)
       return false;
 
+    column++;
     position++;
     return true;
   }
@@ -181,6 +194,7 @@ public class Scanner {
   }
 
   private char next() {
+    column++;
     position++;
     return source.charAt(position - 1);
   }

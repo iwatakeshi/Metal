@@ -58,13 +58,13 @@ public class Metal {
     }                                         
   }
   
-  public static void error(int line, String message) {                       
-    report(line, "", message);                                        
+  public static void error(int line, int column, String message) {                       
+    report(line,column, "", message);                                        
   }
 
-  private static void report(int line, String where, String message) {
+  private static void report(int line, int column, String where, String message) {
     System.err.println(                                               
-        "[line " + line + "] Error" + where + ": " + message);        
+        "[line " + line + "Column" + column + "] Error" + where + ": " + message);        
     hadError = true;                                                  
   } 
 
