@@ -1,40 +1,23 @@
-#Autosave files
-*~
+# Compiled class file
+*.class
 
-#build
-[Oo]bj/
-[Bb]in/
-packages/
-TestResults/
+# Log file
+*.log
 
-# globs
-Makefile.in
-*.DS_Store
-*.sln.cache
-*.suo
-*.cache
-*.pidb
-*.userprefs
-*.usertasks
-config.log
-config.make
-config.status
-aclocal.m4
-install-sh
-autom4te.cache/
-*.user
+# BlueJ files
+*.ctxt
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# Package Files #
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
 *.tar.gz
-tarballs/
-test-results/
-Thumbs.db
+*.rar
 
-#Mac bundle stuff
-*.dmg
-*.app
-
-#resharper
-*_Resharper.*
-*.Resharper
-
-#dotCover
-*.dotCover
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
