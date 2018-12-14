@@ -68,4 +68,12 @@ public class Metal {
     hadError = true;                                                  
   } 
 
+  public static void error(Token token, String message) {              
+    if (token.type == TokenType.EOF) {                          
+      report(token.line, token.column, " at end", message);                   
+    } else {                                                    
+      report(token.line, token.column, " at '" + token.lexeme + "'", message);
+    }                                                           
+  }  
+
 }

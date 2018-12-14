@@ -27,5 +27,5 @@ public enum TokenType {
   /* Others */
   Invalid,
   EOF,
-  None
+  OtherType
 }

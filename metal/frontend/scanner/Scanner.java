@@ -22,28 +22,6 @@ public class Scanner {
     this.source = source;
   }
 
-  private static final Map<String, TokenType> keywords;
-
-  static {
-    keywords = new HashMap<>();
-    keywords.put("and", Reserved);
-    keywords.put("class", Reserved);
-    keywords.put("else", Reserved);
-    keywords.put("false", Reserved);
-    keywords.put("for", Reserved);
-    keywords.put("fun", Reserved);
-    keywords.put("if", Reserved);
-    keywords.put("nil", Reserved);
-    keywords.put("or", Reserved);
-    keywords.put("print", Reserved);
-    keywords.put("return", Reserved);
-    keywords.put("super", Reserved);
-    keywords.put("this", Reserved);
-    keywords.put("true", Reserved);
-    keywords.put("var", Reserved);
-    keywords.put("while", Reserved);
-  }
-
   public List<Token> scanTokens() {
     while (!isAtEnd()) {
       // We are at the beginning of the next lexeme.
@@ -67,20 +45,20 @@ public class Scanner {
     case '{':
     case '}':
     case ',':
-    case '.':
     case ';':
-      addToken(Punctuation);
-      break;
+    addToken(Punctuation);
+    break;
     case '-':
     case '+':
     case '*':
     case '!':
-      if (match('=')) {
-        addToken(Operator);
-        break;
-      }
+    if (match('=')) {
       addToken(Operator);
       break;
+    }
+    addToken(Operator);
+    break;
+    case '.':
     case '=':
     case '<':
     case '>':
@@ -177,9 +155,9 @@ public class Scanner {
       next();
 
     // See if the identifier is a reserved word.
-    String text = source.substring(start, position);
-    TokenType type = keywords.get(text);
-    if (type == null)
+    String lexeme = source.substring(start, position);
+    TokenType type = TokenType.Reserved;
+    if (!Token.isReserved(lexeme))
       type = Identifier;
     addToken(type);
   }
