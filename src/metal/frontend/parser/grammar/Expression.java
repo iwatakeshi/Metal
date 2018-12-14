@@ -1,6 +1,5 @@
 package metal.frontend.parser.grammar;
 
-import java.util.List;
 import metal.frontend.scanner.Token;
 
 public abstract class Expression {
