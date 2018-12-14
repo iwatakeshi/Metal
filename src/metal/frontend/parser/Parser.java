@@ -11,7 +11,10 @@ import metal.Metal;
 
 class Parser {
 
-  private static class ParseError extends RuntimeException {}
+  private static class ParseError extends RuntimeException {
+
+    private static final long serialVersionUID = 1L;
+  }
 
   private final List<Token> tokens;
   private int current = 0;
