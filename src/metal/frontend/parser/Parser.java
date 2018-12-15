@@ -23,10 +23,24 @@ class Parser {
     this.tokens = tokens;
   }
 
+  Expression parse() {                
+    try {                       
+      return expression();      
+    } catch (ParseError error) {
+      return null;              
+    }                           
+  } 
+
+/*
+ * expression → equality
+ */
   private Expression expression() {
     return equality();
   }
 
+/*
+ * equality → comparison ( ( "!=" | "==" ) comparison )* zero or more
+ */
   private Expression equality() {
     Expression expression = comparison();
 
@@ -39,6 +53,9 @@ class Parser {
     return expression;
   }
 
+/*
+ * comparison → addition ( ( ">" | ">=" | "<" | "<=" ) addition )* zero or more
+ */
   private Expression comparison() {
     Expression expression = addition();
 
@@ -51,6 +68,9 @@ class Parser {
     return expression;
   }
 
+/*
+ * addition → multiplication ( ( "-" | "+" ) multiplication )* zero or more
+ */
   private Expression addition() {
     Expression expression = multiplication();
 
@@ -63,6 +83,9 @@ class Parser {
     return expression;
   }
 
+/*
+ * multiplication → unary ( ( "/" | "*" ) unary )* zero or more
+ */
   private Expression multiplication() {
     Expression expression = unary();
 
@@ -75,6 +98,9 @@ class Parser {
     return expression;
   }
 
+/*
+ * unary → ( "!" | "-" ) unary | primary ;
+ */
   private Expression unary() {
     if (match("!", "-")) {
       Token operator = previous();
@@ -85,6 +111,9 @@ class Parser {
     return primary();
   }
 
+/*
+ * primary → NUMBER | STRING | "false" | "true" | "nil" | "(" expression ")" ;
+ */
   private Expression primary() {
     if (match(BooleanLiteral))
       return new Expression.Literal(Boolean.parseBoolean(previous().lexeme));
@@ -104,6 +133,7 @@ class Parser {
     throw error(peek(), "Expect expression."); 
   }
 
+  //Needed? match(TokenType... types)
   private boolean match(TokenType... types) {
     for (TokenType type : types) {
       if (check(type)) {
@@ -139,6 +169,7 @@ class Parser {
     throw error(peek(), message);
   }
 
+  //Needed? check(TokenType type)
   private boolean check(TokenType type) {
     if (isAtEnd())
       return false;
@@ -173,4 +204,31 @@ class Parser {
     Metal.error(token, message);                           
     return new ParseError();                             
   }
-}
+
+/*
+*  Looking for next statement
+*  for,if,return,var,etc...
+*/
+//don't know where synchronize() is being called from TT  
+  private void synchronize() {                 
+    advance();
+
+    while (!isAtEnd()) {                       
+      if (previous().type == ";") return;
+
+      switch (peek().type) {                   
+        case CLASS:                            
+        case FUN:                              
+        case VAR:                              
+        case FOR:                              
+        case IF:                               
+        case WHILE:                            
+        case PRINT:                            
+        case RETURN:                           
+          return;                              
+      }                                        
+
+      advance();                               
+    }                                          
+  } 
+}//end Parser Class

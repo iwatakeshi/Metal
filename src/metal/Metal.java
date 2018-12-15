@@ -9,6 +9,11 @@ import java.nio.file.Paths;
 import java.util.List;
 
 import metal.frontend.scanner.*;
+//should these be bin/production/Metal/... since that's where the classes reside?
+//added TT
+import metal.frontend.parser.*;
+import metal.frontend.parser.grammar.*;
+import metal.utilities.*;
 
 public class Metal {
   static boolean hadError = false;
@@ -52,10 +57,19 @@ public class Metal {
     Scanner scanner = new Scanner(source);    
     List<Token> tokens = scanner.scanTokens();
 
-    // For now, just print the tokens.        
-    for (Token token : tokens) {              
-      System.out.println(token);              
-    }                                         
+    // // For now, just print the tokens.        
+    // for (Token token : tokens) {              
+    //   System.out.println(token);              
+    // } 
+    
+    //added TT
+    Parser parser = new Parser(tokens);                    
+    Expression expression = parser.parse();
+
+    // Stop if there was a syntax error.                   
+    if (hadError) return;                                  
+
+    System.out.println(new ASTPrinter().print(expression));                                        
   }
   
   public static void error(int line, int column, String message) {                       
