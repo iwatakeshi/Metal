@@ -77,6 +77,33 @@ public class Token {
     return "Type: " + type + ", Lexeme: " + lexeme + ", Value: " + literal + ", Line: " + line + ", Column: " + column;
   }
 
+  public Boolean hasType(TokenType type) {
+    return this.type == type;
+  }
+
+  public Boolean hasType(TokenType type, String lexeme) {
+    return this.type == type && this.lexeme == lexeme;
+  }
+
+  public Boolean hasTypes(TokenType... types) {
+    for(var type : types) {
+      if (this.type != type) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @SafeVarargs
+  public final Boolean hasTypes(Map<TokenType, String>... types) {
+    for(var type : types) {
+      if (type.get(this.type) != this.lexeme) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   public static Boolean isReserved(String lexeme) {
     return reserved.get(lexeme) != null;
   }

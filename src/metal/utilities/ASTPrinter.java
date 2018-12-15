@@ -4,8 +4,8 @@ import metal.frontend.scanner.Token;
 import metal.frontend.scanner.TokenType;
 import metal.frontend.parser.grammar.Expression;
 // Creates an unambiguous, if ugly, string representation of AST nodes.
-class ASTPrinter implements Expression.Visitor<String> {                     
-  String print(Expression expression) {                                            
+public class ASTPrinter implements Expression.Visitor<String> {                     
+  public String print(Expression expression) {                                            
     return expression.accept(this);                                          
   } 
   @Override                                                          

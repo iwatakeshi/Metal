@@ -9,8 +9,9 @@ import java.nio.file.Paths;
 import java.util.List;
 
 import metal.frontend.scanner.*;
-//should these be bin/production/Metal/... since that's where the classes reside?
-//added TT
+// should these be bin/production/Metal/... since that's where the classes reside?
+// added TT
+// TI: LGTM. No need to add bin/. The .classpath file let's vscode know where to output the classes
 import metal.frontend.parser.*;
 import metal.frontend.parser.grammar.*;
 import metal.utilities.*;

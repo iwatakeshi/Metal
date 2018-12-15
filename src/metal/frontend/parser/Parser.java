@@ -1,6 +1,7 @@
 package metal.frontend.parser;
 
 import java.util.List;
+import java.util.Map;
 
 import static metal.frontend.scanner.TokenType.*;
 import metal.frontend.scanner.TokenType;
@@ -9,7 +10,7 @@ import metal.frontend.parser.grammar.*;
 import metal.Metal;
 
 
-class Parser {
+public class Parser {
 
   private static class ParseError extends RuntimeException {
 
@@ -19,11 +20,11 @@ class Parser {
   private final List<Token> tokens;
   private int current = 0;
 
-  Parser(List<Token> tokens) {
+  public Parser(List<Token> tokens) {
     this.tokens = tokens;
   }
 
-  Expression parse() {                
+  public Expression parse() {                
     try {                       
       return expression();      
     } catch (ParseError error) {
@@ -130,14 +131,15 @@ class Parser {
       return new Expression.Group(expression);
     }
 
-    throw error(peek(), "Expect expression."); 
+    throw error(current(), "Expect expression."); 
   }
 
   //Needed? match(TokenType... types)
+  // TI: Ln 119 Col 9
   private boolean match(TokenType... types) {
     for (TokenType type : types) {
       if (check(type)) {
-        advance();
+        next();
         return true;
       }
     }
@@ -148,51 +150,44 @@ class Parser {
   private boolean match(String... types) {
     for (String type : types) {
       if (check(type)) {
-        advance();
+        next();
         return true;
       }
     }
     return false;
   }
 
-  // private Token consume(TokenType type, String message) {
-  //   if (check(type))
-  //     return advance();
-
-  //   throw error(peek(), message);
-  // }
-
   private Token consume(String type, String message) {
     if(check(type)) {
-      return advance();
+      return next();
     }
-    throw error(peek(), message);
+    throw error(current(), message);
   }
 
-  //Needed? check(TokenType type)
+  // TI: Just in case.
   private boolean check(TokenType type) {
     if (isAtEnd())
       return false;
-    return peek().type == type;
+    return current().hasType(type);
   }
 
   private boolean check(String type) {
     if (isAtEnd())
       return false;
-    return peek().type == Token.getTokenType(type);
+    return current().type == Token.getTokenType(type);
   }
 
-  private Token advance() {
+  private Token next() {
     if (!isAtEnd())
       current++;
     return previous();
   }
 
   private boolean isAtEnd() {
-    return peek().type == EOF;
+    return current().type == EOF;
   }
 
-  private Token peek() {
+  private Token current() {
     return tokens.get(current);
   }
 
@@ -209,26 +204,29 @@ class Parser {
 *  Looking for next statement
 *  for,if,return,var,etc...
 */
-//don't know where synchronize() is being called from TT  
+  // Don't know where synchronize() is being called from TT
+  //
   private void synchronize() {                 
-    advance();
+    next();
 
     while (!isAtEnd()) {                       
-      if (previous().type == ";") return;
+      if (previous().hasType(Punctuation, ";")) return;
 
-      switch (peek().type) {                   
-        case CLASS:                            
-        case FUN:                              
-        case VAR:                              
-        case FOR:                              
-        case IF:                               
-        case WHILE:                            
-        case PRINT:                            
-        case RETURN:                           
-          return;                              
-      }                                        
+      if (current().hasTypes(
+      Map.ofEntries(
+        Map.entry(Reserved, "class"),
+        Map.entry(Reserved, "fun"),
+        Map.entry(Reserved, "var"),
+        Map.entry(Reserved, "for"),
+        Map.entry(Reserved, "if"),
+        Map.entry(Reserved, "while"),
+        Map.entry(Reserved, "print"),
+        Map.entry(Reserved, "return")
+      ))) {
+        return;
+      }                                  
 
-      advance();                               
+      next();                               
     }                                          
   } 
 }//end Parser Class
